@@ -3,11 +3,6 @@ title: "Data Relationships"
 description: "Relationship information is automatically shown in each resource's documentation. Look for relationship indicators next to UUID fields that reference other resources."
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/data-relationships) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
-Relationship information is automatically shown in each resource's documentation. Look for relationship indicators next to UUID fields that reference other resources.
 
 Ramp's API resources are interconnected through a rich set of relationships that mirror real-world business processes. Understanding these relationships is crucial for building effective integrations, especially when you need to:
 
@@ -21,28 +16,28 @@ Design user interfaces that reflect business workflows
 
 When viewing any API resource, you'll see interactive relationship indicators next to UUID fields that reference other resources. These indicators show the target resource and relationship type, with clickable links for easy navigation.
 
-Relationship Types
+## Relationship types
 
 The most common relationship type where multiple records reference a single parent record.
 
 Examples:
 
-Users → Department: Many employees belong to one department
+- **Users → Department**: Many employees belong to one department
 
-Transactions → User: Many transactions are made by one cardholder
+- **Transactions → User**: Many transactions are made by one cardholder
 
-Bills → Vendor: Many bills are paid to one vendor
+- **Bills → Vendor**: Many bills are paid to one vendor
 
 A single parent record has multiple child records.
 
-Department → Users: One department has many employees
+- **Department → Users**: One department has many employees
 
-Vendor → Bills: One vendor receives multiple bills
+- **Vendor → Bills**: One vendor receives multiple bills
 
-User → Cards: One user can have multiple cards
+- **User → Cards**: One user can have multiple cards
 
 A direct relationship between two specific records.
 
-Business → Primary Location: Each business has one primary location
+- **Business → Primary Location**: Each business has one primary location
 
-Card → Primary User: Each card has one primary cardholder
+- **Card → Primary User**: Each card has one primary cardholder

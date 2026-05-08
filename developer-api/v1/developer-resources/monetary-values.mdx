@@ -3,29 +3,24 @@ title: "Monetary Values"
 description: "In the Ramp API, monetary values are represented by the currency_code and amount. All currency_code values are three-letter acronyms as defined in ISO 4217 (e.g., USD for US Dollars). There are two representations of the amount:"
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/monetary-values) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
 
-In the Ramp API, monetary values are represented by the currency_code and amount. All currency_code values are three-letter acronyms as defined in ISO 4217 (e.g., USD for US Dollars). There are two representations of the amount:
-
-Canonical representation (Preferred)
+## Canonical representation (preferred)
 
 Ramp's preferred method for representing monetary values is canonical representation, which uses the CurrencyAmount type to group amount and currency_code together. The amount is represented as an integer in the smallest denomination to avoid precision loss.
 
 For example:
 
-USD: $40 is represented as 4000 (since 1 USD = 100 cents)
+- **USD**: $40 is represented as 4000 (since 1 USD = 100 cents)
 
-JPY: ¥5000 is represented as 5000 (since 1 JPY = 1 yen)
+- **JPY**: ¥5000 is represented as 5000 (since 1 JPY = 1 yen)
 
 To calculate the correct amount for different currencies, the canonical representation multiplies the amount by 10 raised to the power of D, where D is the number of decimal places for the currency. You can find the D value for any currency in the ISO 4217 Wikipedia page.
 
-USD, EUR, GBP, etc.: D = 2 (i.e., multiply the amount by 100 for cents)
+- **USD, EUR, GBP, etc.**: D = 2 (i.e., multiply the amount by 100 for cents)
 
-JPY: D = 0 (i.e., no decimal places)
+- **JPY**: D = 0 (i.e., no decimal places)
 
-Formula:
+## Formula
 
 For example, for USD:
 

@@ -3,25 +3,20 @@ title: "Authorization"
 description: "Ramp uses OAuth 2.0 for secure API access, providing granular permission control through scopes and supporting multiple authorization flows for different use cases. Ramp authenticates requests to /developer/v1/token with HTTP Basic Auth using your client ID and client secret."
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/authorization) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
-Ramp uses OAuth 2.0 for secure API access, providing granular permission control through scopes and supporting multiple authorization flows for different use cases. Ramp authenticates requests to /developer/v1/token with HTTP Basic Auth using your client ID and client secret.
 
 This guide covers the authorization framework in depth. For a quick start making your first API calls, see the Setup Guide.
 
-OAuth 2.0 Framework
+## OAuth 2.0 framework
 
 Ramp implements the OAuth 2.0 authorization framework with the following components:
 
-Resource Server: Ramp's API endpoints that serve protected resources
+- **Resource Server**: Ramp's API endpoints that serve protected resources
 
-Authorization Server: Ramp's OAuth service that issues access tokens
+- **Authorization Server**: Ramp's OAuth service that issues access tokens
 
-Client: Your application requesting access to Ramp resources
+- **Client**: Your application requesting access to Ramp resources
 
-Resource Owner: The Ramp business granting access to their data
+- **Resource Owner**: The Ramp business granting access to their data
 
 Client Credentials
 
@@ -35,13 +30,13 @@ Third-party apps, public integrations
 
 Admin consent required
 
-Permission Model & Scopes
+## Permission model and scopes
 
 Ramp's permission model uses OAuth 2.0 scopes to control access to different resources and operations. Each scope follows the pattern resource:permission where:
 
-resource: The API resource (e.g., transactions, bills, users)
+- **resource**: The API resource (e.g., transactions, bills, users)
 
-permission: The allowed operation (read or write)
+- **permission**: The allowed operation (read or write)
 
 accounting:read
 
@@ -267,25 +262,25 @@ Create and update vendor information
 
 When requesting scopes for your application:
 
-Principle of Least Privilege: Only request scopes your application actually needs
+- **Principle of Least Privilege**: Only request scopes your application actually needs
 
-Read vs Write: Start with read-only access and add write permissions as needed
+- **Read vs Write**: Start with read-only access and add write permissions as needed
 
-Sensitive Data: Scopes like cards:read_vault require additional security review
+- **Sensitive Data**: Scopes like cards:read_vault require additional security review
 
-Related Resources: Some operations may require multiple scopes (e.g., creating cards may need both cards:write and users:read)
+- **Related Resources**: Some operations may require multiple scopes (e.g., creating cards may need both cards:write and users:read)
 
 Token Management
 
 Access tokens issued by Ramp have the following characteristics:
 
-Format: Opaque tokens (not JWT)
+- **Format**: Opaque tokens (not JWT)
 
-Lifetime: 10 days (864,000 seconds) for Client Credentials
+- **Lifetime**: 10 days (864,000 seconds) for Client Credentials
 
-Scope Binding: Tokens are bound to specific scopes and cannot be used beyond granted permissions
+- **Scope Binding**: Tokens are bound to specific scopes and cannot be used beyond granted permissions
 
-Environment Isolation: Tokens work only in the environment where they were issued
+- **Environment Isolation**: Tokens work only in the environment where they were issued
 
 Token Security
 
@@ -305,7 +300,7 @@ Authorization Flow Deep Dive
 
 Best for server-to-server integrations where no user interaction is required.
 
-Ramp uses HTTP Basic Auth for token requests in this flow: send client_id:client_secret, base64-encoded, in the Authorization: Basic ... header.
+- **Ramp uses HTTP Basic Auth for token requests in this flow**: send client_id:client_secret, base64-encoded, in the Authorization: Basic ... header.
 
 When to Use:
 
@@ -339,7 +334,7 @@ Authorization codes have short lifetimes (10 minutes)
 
 Only Admin and Business Owner users can grant authorization
 
-Step 1: User is redirected to Ramp authorization URL
+- **Step 1**: User is redirected to Ramp authorization URL
 
 There are five required parameters in this request:
 
@@ -367,7 +362,7 @@ Example URL:
 
 Your application must direct the user to Ramp's OAuth authorization endpoint. This initiates the flow by asking the user to log in and approve your app.
 
-Step 2: User authenticates and approves access
+- **Step 2**: User authenticates and approves access
 
 Only users with Admin or Business Owner roles can authorize third-party applications. If a user with insufficient permissions attempts to authorize your app, they will receive a "Business not authorized to use this application" error.
 
@@ -377,9 +372,9 @@ Upon approval, Ramp redirects to your redirect_uri with a temporary code and the
 
 Extract the code from the URL to proceed to token exchange.
 
-Step 3: Exchange the code for an access token
+- **Step 3**: Exchange the code for an access token
 
-Step 4: Refresh the access token
+- **Step 4**: Refresh the access token
 
 Tokens expire. Use the refresh token to obtain a new access token:
 
@@ -417,11 +412,11 @@ User must approve access or contact admin
 
 When using access tokens with API endpoints:
 
-401 Unauthorized: Token is missing, expired, or invalid
+- **401 Unauthorized**: Token is missing, expired, or invalid
 
-403 Forbidden: Token is valid but lacks required scope for the resource
+- **403 Forbidden**: Token is valid but lacks required scope for the resource
 
-429 Too Many Requests: Rate limit exceeded (see Rate Limiting)
+- **429 Too Many Requests**: Rate limit exceeded (see Rate Limiting)
 
 FAQ
 

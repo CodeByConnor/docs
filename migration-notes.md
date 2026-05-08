@@ -72,6 +72,7 @@ Across migrated pages, formatting uses Mintlify-native components where appropri
   - `developer-api/v1/getting-started/agent-cards`
   - `developer-api/v1/getting-started/ramp-mcp`
   - `developer-api/v1/getting-started/developer-mcp`
+- `llms-guides/changelog.txt` can lag behind the live rendered changelog feed (for example, live UI entries such as `May 6, 2026` may appear before they are present in the machine-readable export). Validate recency against the rendered docs or RSS source before final publish.
 - Endpoint-by-endpoint API reference QA against production use cases.
 - Track and document any OpenAPI rendering warnings if they appear in future spec updates.
 - Replace placeholder logo/favicon with final customer-approved brand assets.

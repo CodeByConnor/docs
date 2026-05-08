@@ -9,7 +9,7 @@
     {"group": "Getting started", "title": "Introduction", "llms": "introduction.txt", "path": "developer-api/v1/introduction"},
     {"group": "Getting started", "title": "Getting Started", "llms": "getting-started.txt", "path": "developer-api/v1/getting-started"},
     {"group": "Getting started", "title": "Build with Ramp", "llms": "build-with-ramp.txt", "path": "developer-api/v1/build-with-ramp"},
-    {"group": "Getting started", "title": "Changelog", "llms": "changelog.txt", "path": "developer-api/v1/changelog"},
+    {"group": "Getting started", "title": "Changelog", "llms": "changelog.txt", "path": "developer-api/v1/getting-started/changelog"},
     {"group": "Getting started", "title": "Ramp CLI", "llms": "cli.txt", "path": "developer-api/v1/cli"},
     {"group": "Getting started", "title": "Agent Cards", "llms": "agent-cards.txt", "path": "developer-api/v1/agent-cards"},
     {"group": "Getting started", "title": "MCP", "llms": "mcp.txt", "path": "developer-api/v1/mcp"},

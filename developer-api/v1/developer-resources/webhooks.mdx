@@ -3,13 +3,8 @@ title: "Webhooks"
 description: "Webhooks allow your application to receive real-time notifications about events that occur in your Ramp account. Instead of polling our API, webhooks push notifications to your specified endpoint whenever an event happens."
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/webhooks) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
 
-Webhooks allow your application to receive real-time notifications about events that occur in your Ramp account. Instead of polling our API, webhooks push notifications to your specified endpoint whenever an event happens.
-
-Key benefits:
+## Key benefits
 
 Instant notification of events like transactions, approvals, or reimbursements
 
@@ -107,7 +102,7 @@ unified_requests.external_approval_request_reset
 
 External approval request on a unified request has been reset
 
-Getting Started
+## Getting started
 
 Set up an HTTPS endpoint (URL) on your server that can receive POST requests from Ramp. Your endpoint must:
 
@@ -127,21 +122,21 @@ Receive the challenge string from Ramp
 
 Respond by making a verification API call:
 
-Webhook Payload Format
+## Webhook payload format
 
 All webhook payloads follow this consistent structure:
 
 Payload fields:
 
-id: Unique event ID (constant across retries)
+- **id**: Unique event ID (constant across retries)
 
-type: Event type from the available events table
+- **type**: Event type from the available events table
 
-created_at: Event timestamp in ISO 8601 format
+- **created_at**: Event timestamp in ISO 8601 format
 
-business_id: Identifies which business the event belongs to
+- **business_id**: Identifies which business the event belongs to
 
-object: Contains the affected resource ID
+- **object**: Contains the affected resource ID
 
 Transaction Event:
 
@@ -151,7 +146,7 @@ Purchase Order Event:
 
 To get the full resource details, use the resource ID to fetch from the appropriate API endpoint (e.g., /transactions/{id} for transaction events, /reimbursements/{id} for reimbursement events).
 
-Verifying Webhook Signatures
+## Verifying webhook signatures
 
 To help ensure the security of your integration, Ramp includes a cryptographic signature with every webhook event we send. This allows you to verify that the payload was sent by Ramp and hasn't been modified in transit.
 
@@ -167,7 +162,7 @@ Every webhook request from Ramp includes an X-Ramp-Signature header, which conta
 
 Sample X-Ramp-Signature from Ramp:
 
-Delivery and Retry Logic
+## Delivery and retry logic
 
 Webhook delivery throughput is not limited on Ramp's end. However, if your endpoint returns a 429 Too Many Requests status, Ramp has built-in mitigations to handle rate limiting gracefully.
 
@@ -185,11 +180,13 @@ Instant delivery failure - no retries
 
 Retry up to 10 times with exponential backoff
 
-Retry Timing: Failed deliveries use exponential backoff with jitter, starting between 0-60 seconds and growing exponentially with each failed attempt. Webhook requests timeout after 10 seconds.
+- **Retry Timing**: Failed deliveries use exponential backoff with jitter, starting between 0-60 seconds and growing exponentially with each failed attempt. Webhook requests timeout after 10 seconds.
 
-Important: The same event id is used for all retry attempts, allowing you to implement idempotency checks.
+<Warning>
+  The same event id is used for all retry attempts, allowing you to implement idempotency checks.
+</Warning>
 
-Event Ordering: Webhooks may arrive out of order. For example:
+- **Event Ordering**: Webhooks may arrive out of order. For example:
 
 transactions.authorized might be delayed or retried
 
@@ -197,7 +194,7 @@ transactions.cleared may arrive earlier if successful
 
 Design your system to handle out-of-order events gracefully by checking the event timestamp and fetching the latest resource state when needed.
 
-Best Practices
+## Best practices
 
 Implement idempotency checks using the event id to handle duplicate deliveries
 
@@ -267,10 +264,10 @@ For now, implement comprehensive logging in your webhook handlers
 
 Ready to implement webhooks in your integration? Here are some related guides:
 
-Accounting Integration: Learn how ready_to_sync webhooks can replace polling in your Accounting Integration
+- **Accounting Integration**: Learn how ready_to_sync webhooks can replace polling in your Accounting Integration
 
-Getting Started: Set up authentication and make your first API calls with our Setup Guide
+- **Getting Started**: Set up authentication and make your first API calls with our Setup Guide
 
-Bill Pay: Automate bill payment workflows with our Bill Pay Guide
+- **Bill Pay**: Automate bill payment workflows with our Bill Pay Guide
 
 If you have questions or feedback about webhooks, submit a Developer API support ticket – we're here to help make your integration successful.

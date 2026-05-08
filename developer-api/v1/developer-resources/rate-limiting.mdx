@@ -4,11 +4,6 @@ description: "API requests that take longer than 60 seconds will be terminated a
 sidebarTitle: "Rate Limits"
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/rate-limiting) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
-API requests that take longer than 60 seconds will be terminated and return a 504 Gateway Timeout response. Most API requests complete well within this limit, but if you're working with large datasets or complex queries:
 
 Use pagination to break large requests into smaller chunks.
 
@@ -16,9 +11,9 @@ Implement retry logic with exponential backoff for any 504 responses.
 
 To ensure reliable and equitable access to our API, we enforce rate limiting. By default, API requests are limited as follows, applied per source IP address:
 
-Limit: 200 requests per 10-second rolling window.
+- **Limit**: 200 requests per 10-second rolling window.
 
-Reset Mechanism: The window operates on a rolling basis, meaning every new request resets the 10-second timer for that particular request.
+- **Reset Mechanism**: The window operates on a rolling basis, meaning every new request resets the 10-second timer for that particular request.
 
 When the rate limit is exceeded, the API responds with a 429 Too Many Requests status code. This indicates that further requests should be paused until the limit resets.
 
@@ -30,7 +25,7 @@ Implement exponential backoff (e.g., 1s, 2s, 4s) before retrying.
 
 Avoid immediate retries, as this could worsen delays.
 
-Optimize API Calls: Consolidate requests wherever possible, such as using batch endpoints or minimizing redundant calls.
+- **Optimize API Calls**: Consolidate requests wherever possible, such as using batch endpoints or minimizing redundant calls.
 
 If you make 200 requests at 10:00:00, the limit will be reached, and subsequent requests will return a 429 response. If no further requests are made, the limit will reset by 10:00:10. However, if you continue making requests during the window, the rolling timer will extend accordingly.
 
@@ -42,13 +37,13 @@ Submit a Developer API support ticket with your account details and usage requir
 
 Providing clear information about your use case and anticipated volume will help expedite the review process.
 
-Syncing Data
+## Syncing data
 
 Pagination is the mechanism for moving through a result set, but building a reliable sync pipeline also requires knowing which records to fetch and how often. This section covers how to do an initial bulk pull and keep your local data up to date efficiently.
 
 The first time you sync a dataset, you will need to paginate through all records without any date filter. Expect this to be slow for large datasets — a business with years of transaction history may require hundreds of requests.
 
-Recommendation: persist the data locally (in a database or cache) rather than fetching it on every app load. Once you have a local copy, you only need to fetch new or changed records on subsequent syncs.
+- **Recommendation**: persist the data locally (in a database or cache) rather than fetching it on every app load. Once you have a local copy, you only need to fetch new or changed records on subsequent syncs.
 
 After the initial seed, store a high-water mark (the timestamp of your last successful sync) and pass it to the appropriate date-filter parameter on subsequent requests. This avoids re-fetching records you already have.
 

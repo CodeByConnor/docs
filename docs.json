@@ -13,7 +13,7 @@
   },
   "background": {
     "color": {
-      "light": "#1A1919",
+      "light": "#F7F6F3",
       "dark": "#1A1919"
     }
   },
@@ -32,7 +32,7 @@
           "developer-api/v1/getting-started/introduction",
           "developer-api/v1/getting-started/getting-started",
           "developer-api/v1/getting-started/build-with-ramp",
-          "developer-api/v1/changelog",
+          "developer-api/v1/getting-started/changelog",
           "developer-api/v1/getting-started/cli",
           "developer-api/v1/getting-started/agent-cards",
           {
@@ -90,16 +90,16 @@
       {
         "group": "Developer Resources",
         "pages": [
-          "developer-api/v1/authorization",
-          "developer-api/v1/pagination",
-          "developer-api/v1/sandbox",
-          "developer-api/v1/rate-limiting",
-          "developer-api/v1/webhooks",
-          "developer-api/v1/debugging",
-          "developer-api/v1/error-handling",
-          "developer-api/v1/data-relationships",
-          "developer-api/v1/monetary-values",
-          "developer-api/v1/deferred-tasks"
+          "developer-api/v1/developer-resources/authorization",
+          "developer-api/v1/developer-resources/pagination",
+          "developer-api/v1/developer-resources/sandbox",
+          "developer-api/v1/developer-resources/rate-limiting",
+          "developer-api/v1/developer-resources/webhooks",
+          "developer-api/v1/developer-resources/debugging",
+          "developer-api/v1/developer-resources/error-handling",
+          "developer-api/v1/developer-resources/data-relationships",
+          "developer-api/v1/developer-resources/monetary-values",
+          "developer-api/v1/developer-resources/deferred-tasks"
         ]
       },
       {
@@ -110,7 +110,7 @@
   },
   "logo": {
     "light": "/docs/logo/light.svg",
-    "dark": "/docs/logo/light.svg"
+    "dark": "/docs/logo/dark.svg"
   },
   "api": {
     "playground": {
@@ -204,6 +204,10 @@
     {
       "source": "/quickstart",
       "destination": "/developer-api/v1/getting-started/getting-started"
+    },
+    {
+      "source": "/developer-api/v1/changelog",
+      "destination": "/developer-api/v1/getting-started/changelog"
     },
     {
       "source": "/development",
