@@ -1,0 +1,97 @@
+---
+title: "Sync Button"
+description: "This guide explains how integrators can set up the Accounting Sync Button for Accounting API-based connections. Once enabled for your integration, connected customers can initiate transaction and reimbursement syncs directly from the Ramp UI."
+icon: "book-open"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/sync-button) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+This guide explains how integrators can set up the Accounting Sync Button for Accounting API-based connections. Once enabled for your integration, connected customers can initiate transaction and reimbursement syncs directly from the Ramp UI.
+
+Note: This feature is currently in Alpha.
+
+Transaction Sync Button appears on Accounting > Transactions and requires transactions:read, accounting:read, and accounting:write
+
+Reimbursement Sync Button appears on Accounting > Reimbursements and requires reimbursements:read, accounting:read, and accounting:write
+
+Both flows use the same accounting connection pattern: subscribe to a webhook, enable the sync button on the connection, fetch items with the requested_to_sync filter, then POST the sync result back to /developer/v1/accounting/syncs
+
+Transaction Sync Button
+
+Create a webhook subscription with the transactions.sync_requested event type. This will fire when the sync button is pressed.
+
+To create the webhook, make a POST call to the /developer/v1/webhooks endpoint and include transactions.sync_requested in the event_types array:
+
+Ramp will send a POST request with a challenge to your endpoint during setup:
+
+Receive the challenge string from Ramp
+
+Respond by making a verification API call:
+
+Enable the setting that allows the transaction sync button for this connection. Once turned on, this shows the Sync button on the Accounting > Transactions page in Ramp.
+
+Note
+
+This setting is managed at the Accounting Connection level. If you plan on creating multiple Accounting Connections, you need to configure this setting for each connection.
+
+For new connections: Make a POST call to /developer/v1/accounting/connection with settings.transaction_sync_button_enabled set to true:
+
+For existing connections: First, retrieve your connection ID by making a GET call to /developer/v1/accounting/connection:
+
+Then make a PATCH call to /developer/v1/accounting/connection/{connection_id}, using the id from the previous response as the connection_id, with settings.transaction_sync_button_enabled set to true:
+
+Once enabled, the Sync button appears on the Accounting > Transactions page in Ramp.
+
+Since you've subscribed to the webhook, you will receive a transactions.sync_requested event when a customer clicks the Sync button:
+
+For the remaining steps, keep track of the sync_request_id value.
+
+Important: 5-minute response window
+
+You must respond by posting the Accounting Sync within 5 minutes of receiving the webhook. Transactions that don't have a sync posted within that window will be automatically marked as failed.
+
+After receiving the transactions.sync_requested webhook, fetch the transactions that were requested for sync by calling the /developer/v1/transactions endpoint with the requested_to_sync filter. Only the transactions that were requested to sync will be returned.
+
+Once you've synced the transaction data to your system, make a POST call to /developer/v1/accounting/syncs. Include the sync_request_id from the webhook payload in the request body.
+
+Notes:
+
+You can make multiple API calls to POST /developer/v1/accounting/syncs per sync request by providing the same sync_request_id.
+
+Ramp will update the UI in real time with the accurate number of transactions successfully synced or failed.
+
+Customers will see the same sync flow in the UI as they would with a direct Ramp accounting integration:
+
+Click the Sync All button in the top right of the screen, or select specific transactions to sync individually.
+
+View the sync progress at the top of the screen in real time.
+
+See a summary of successes and errors (with error reasons) in the UI once the sync completes.
+
+Reimbursement Sync Button
+
+Create a webhook subscription with the reimbursements.sync_requested event type. This will fire when the sync button is pressed.
+
+To create the webhook, make a POST call to the /developer/v1/webhooks endpoint and include reimbursements.sync_requested in the event_types array:
+
+Enable the setting that allows the reimbursement sync button for this connection. Once turned on, this shows the Sync button on the Accounting > Reimbursements page in Ramp.
+
+For new connections: Make a POST call to /developer/v1/accounting/connection with settings.reimbursement_sync_button_enabled set to true:
+
+Then make a PATCH call to /developer/v1/accounting/connection/{connection_id}, using the id from the previous response as the connection_id, with settings.reimbursement_sync_button_enabled set to true:
+
+Once enabled, the Sync button appears on the Accounting > Reimbursements page in Ramp.
+
+Since you've subscribed to the webhook, you will receive a reimbursements.sync_requested event when a customer clicks the Sync button:
+
+You must respond by posting the Accounting Sync within 5 minutes of receiving the webhook. Reimbursements that don't have a sync posted within that window will be automatically marked as failed.
+
+After receiving the reimbursements.sync_requested webhook, fetch the reimbursements that were requested for sync by calling the /developer/v1/reimbursements endpoint with the requested_to_sync filter. Only the reimbursements that were requested to sync will be returned.
+
+Once you've synced the reimbursement data to your system, make a POST call to /developer/v1/accounting/syncs. Include the sync_request_id from the webhook payload in the request body.
+
+Ramp will update the UI in real time with the accurate number of reimbursements successfully synced or failed.
+
+Click the Sync All button in the top right of the screen, or select specific reimbursements to sync individually.

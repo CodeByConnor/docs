@@ -1,0 +1,157 @@
+---
+title: "Customized Approvers"
+description: "Matrix Tables let you define lookup relationships between Ramp objects. A common use case: mapping accounting dimensions (like projects, departments, or cost centers) to specific approvers so that spend is automatically routed to the right person."
+icon: "book-open"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/custom-records/customized-approvers) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+Matrix Tables let you define lookup relationships between Ramp objects. A common use case: mapping accounting dimensions (like projects, departments, or cost centers) to specific approvers so that spend is automatically routed to the right person.
+
+This guide walks through building a Project Approver Matrix that maps each project to a designated approver. Once configured, this matrix can drive approval workflows in Ramp — when an employee submits spend tagged to "Marketing Events," Ramp knows to route it to the assigned approver.
+
+Marketing Events
+
+Robert Gu
+
+Services
+
+Elizabeth Smith
+
+A Ramp Plus or Enterprise account
+
+An OAuth client with custom_records:read, custom_records:write, accounting:read, and users:read scopes
+
+At least one accounting field with options configured (e.g., a "Project Type" field synced from your ERP)
+
+Obtain an access token using client credentials:
+
+Use the access_token as a Bearer token in all subsequent requests.
+
+Matrix Tables that use accounting dimensions as inputs require the accounting_field_ramp_id — the Ramp UUID of the accounting field whose options you want to map.
+
+List your accounting fields to find the right one:
+
+Note the ramp_id — you'll need it when creating the matrix table.
+
+Step 3: Create the Matrix Table
+
+accounting_field_ramp_id is required
+
+When referencing accounting_field_options as an input column, you must include accounting_field_ramp_id to specify which accounting field's options to use.
+
+many_to_many: Each project can map to one or more approvers. Use PUT to replace all approvers for a row, or -/append and -/remove to modify them individually.
+
+many_to_one: Each project maps to exactly one approver. Use PUT to set or replace.
+
+For approval routing tables, many_to_many is usually the easier default. It works fine when you only have one approver today, and it gives you room to add backups later without changing the column definition.
+
+Step 4: Populate rows
+
+Use the PUT endpoint to upsert rows. Each row maps a project (input) to an approver (result).
+
+When referencing a user in the results, you can identify them by either their Ramp UUID or their email address:
+
+Ramp UUID
+
+`{"column_name": "id", "value": "23b24cd9-47d2-438b-842e-f81783df0ab3"}`
+
+Email
+
+`{"column_name": "email", "value": "robert.gu@company.com"}`
+
+For the inputs, accounting field options can be referenced by Ramp ID, or by their ERP-backed remote_code / remote_name values using code and name:
+
+Option ramp_id
+
+`{"column_name": "id", "value": "08318be9-9a77-4504-8f0f-70fb5a85a3dd"}`
+
+ERP code (remote_code)
+
+`{"column_name": "code", "value": "MKT_EVENTS"}`
+
+ERP name (remote_name)
+
+`{"column_name": "name", "value": "Marketing Events"}`
+
+code and name are often easier because they let you skip the extra field-options lookup, but they only work when the value is unique within the selected accounting field. If multiple options share the same code or name, the API returns an error.
+
+See Supported Native Tables for the full list of valid identifiers per object type.
+
+The response tells you how many rows were created vs updated. Upserting the same project with a different approver returns "inserted": 0, "updated": 1.
+
+To reassign a project to a different approver, PUT the same input with a new result set. For many_to_many columns, PUT replaces the full list of approvers for that row:
+
+The "updated": 1 confirms the existing row was modified, not duplicated.
+
+Remove a project-to-approver mapping using the row ID from the list-rows response:
+
+Returns HTTP 204 on success with no response body.
+
+Row ID is required
+
+You need the row's UUID to delete it. Get this from the id field in the list-rows response — there's no way to delete by input values directly.
+
+You can extend a matrix table with additional result columns without recreating it. For example, adding a secondary approver for backup coverage:
+
+Once added, you can populate both columns in a single upsert:
+
+Consistent columns in batch upserts
+
+All rows in a single PUT request must include the same set of result columns. If one row sets both approver and secondary_approver, every row in that batch must too. If a row doesn't have a secondary approver, you still need to include the column — the API will return an error otherwise.
+
+Rename a column or table
+
+Column and table API names can be changed without affecting the data. This is useful when refactoring your naming conventions.
+
+Returns HTTP 204. The column is now referenced as backup_approver in all subsequent API calls. The display label ("Secondary Approver") is unchanged.
+
+Returns HTTP 204. The old table name stops working immediately — update any integrations that reference the previous name.
+
+Naming rules
+
+API names must contain only lowercase letters and underscores. No hyphens, spaces, or uppercase characters.
+
+CUSTOM_RECORDS_7001
+
+Table already exists
+
+Duplicate table name
+
+CUSTOM_RECORDS_7002
+
+Unknown column name
+
+Column doesn't exist on the table
+
+CUSTOM_RECORDS_7003
+
+Inconsistent set of columns
+
+Rows in batch have different result columns
+
+CUSTOM_RECORDS_7005
+
+Cannot find native row
+
+Invalid ID or inactive option
+
+CUSTOM_RECORDS_7007
+
+Duplicate input combinations
+
+Same input combo appears twice in one request
+
+CUSTOM_RECORDS_7018
+
+Invalid native object column name
+
+Use id not ramp_id for field options
+
+CUSTOM_RECORDS_7020
+
+Cannot append to many-to-one column
+
+Use PUT instead of -/append for single-value columns

@@ -1,0 +1,277 @@
+---
+title: "Webhooks"
+description: "Webhooks allow your application to receive real-time notifications about events that occur in your Ramp account. Instead of polling our API, webhooks push notifications to your specified endpoint whenever an event happens."
+icon: "book-open"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/webhooks) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+Webhooks allow your application to receive real-time notifications about events that occur in your Ramp account. Instead of polling our API, webhooks push notifications to your specified endpoint whenever an event happens.
+
+Key benefits:
+
+Instant notification of events like transactions, approvals, or reimbursements
+
+Reduces the need for polling APIs to check for updates
+
+Enables automation of downstream workflows (e.g., syncing with accounting software)
+
+Webhooks are organized by resource type. Your access token must include the appropriate scope to subscribe to events for each resource.
+
+Applications
+
+applications:read
+
+applications.status_updated
+
+Application status has changed (e.g., approved, rejected)
+
+Transactions
+
+transactions:read
+
+transactions.ready_for_review
+
+Transaction needs review or coding
+
+transactions.cleared
+
+Transaction has been settled (also fires for refunds and reversals)
+
+transactions.authorized
+
+Transaction has been authorized
+
+transactions.ready_to_sync
+
+Transaction is ready to sync to accounting system
+
+transactions.declined
+
+Transaction has been declined
+
+Bills
+
+bills:read
+
+bills.created
+
+New bill has been created
+
+bills.approved
+
+Bill has been approved for payment
+
+bills.rejected
+
+Bill has been rejected
+
+bills.paid
+
+Bill payment has been completed
+
+Purchase Orders
+
+purchase_orders:read
+
+purchase_orders.created
+
+New purchase order has been created
+
+purchase_orders.updated
+
+Purchase order has been modified
+
+purchase_orders.archived
+
+Purchase order has been archived
+
+Spend Requests
+
+spend_requests:read
+
+spend_requests.comment_created
+
+New comment has been added to a spend request
+
+Unified Requests
+
+unified_requests:read
+
+unified_requests.external_approval_request
+
+Unified request is is ready for external approval
+
+unified_requests.external_approval_request_reset
+
+External approval request on a unified request has been reset
+
+Getting Started
+
+Set up an HTTPS endpoint (URL) on your server that can receive POST requests from Ramp. Your endpoint must:
+
+Be publicly accessible
+
+Use HTTPS
+
+Return a 2xx status code for successful receipt
+
+Process requests within 10 seconds
+
+Create a webhook subscription using the /webhooks endpoint. You must have the appropriate scopes in your access token.
+
+Ramp will send a POST request with a challenge to your endpoint during setup.
+
+Receive the challenge string from Ramp
+
+Respond by making a verification API call:
+
+Webhook Payload Format
+
+All webhook payloads follow this consistent structure:
+
+Payload fields:
+
+id: Unique event ID (constant across retries)
+
+type: Event type from the available events table
+
+created_at: Event timestamp in ISO 8601 format
+
+business_id: Identifies which business the event belongs to
+
+object: Contains the affected resource ID
+
+Transaction Event:
+
+Bill Event:
+
+Purchase Order Event:
+
+To get the full resource details, use the resource ID to fetch from the appropriate API endpoint (e.g., /transactions/{id} for transaction events, /reimbursements/{id} for reimbursement events).
+
+Verifying Webhook Signatures
+
+To help ensure the security of your integration, Ramp includes a cryptographic signature with every webhook event we send. This allows you to verify that the payload was sent by Ramp and hasn't been modified in transit.
+
+While payload validation is optional, we recommend implementing it for any production environment.
+
+Using a no-code or low-code platform?
+
+If you're using a no-code or low-code platform (like Zapier, Make, or Pipedream), you may not have access to custom code for signature verification — and that's okay. Validation is encouraged, but not required for webhooks to work.
+
+When you create a webhook subscription, Ramp provides a secret field in the response. You'll use this secret to verify the authenticity of all subsequent webhook events.
+
+Every webhook request from Ramp includes an X-Ramp-Signature header, which contains an HMAC-SHA256 hash of the raw request body, signed with your webhook secret.
+
+Sample X-Ramp-Signature from Ramp:
+
+Delivery and Retry Logic
+
+Webhook delivery throughput is not limited on Ramp's end. However, if your endpoint returns a 429 Too Many Requests status, Ramp has built-in mitigations to handle rate limiting gracefully.
+
+Ramp's retry behavior depends on the HTTP status code returned by your webhook endpoint:
+
+2xx
+
+Delivery successful - no retries
+
+3xx, 4xx (except 429)
+
+Instant delivery failure - no retries
+
+429, 5xx (including timeouts)
+
+Retry up to 10 times with exponential backoff
+
+Retry Timing: Failed deliveries use exponential backoff with jitter, starting between 0-60 seconds and growing exponentially with each failed attempt. Webhook requests timeout after 10 seconds.
+
+Important: The same event id is used for all retry attempts, allowing you to implement idempotency checks.
+
+Event Ordering: Webhooks may arrive out of order. For example:
+
+transactions.authorized might be delayed or retried
+
+transactions.cleared may arrive earlier if successful
+
+Design your system to handle out-of-order events gracefully by checking the event timestamp and fetching the latest resource state when needed.
+
+Best Practices
+
+Implement idempotency checks using the event id to handle duplicate deliveries
+
+Return 2xx responses within 10 seconds to avoid timeout retries
+
+Process payloads asynchronously to respond quickly
+
+Log raw payloads for debugging and audit trails
+
+Handle retries gracefully - the same event may be delivered up to 10 times for 429/5xx responses
+
+Always verify webhook signatures before processing
+
+Use HTTPS endpoints to encrypt data in transit
+
+Validate event types against your expected events
+
+Implement proper error handling for malformed payloads
+
+Monitor for failed webhook deliveries
+
+Set up alerting for webhook endpoint downtime
+
+Managing Webhook Subscriptions
+
+Use the same /webhooks endpoints to manage subscriptions for multi-customer applications.
+
+The webhook payload always includes a business_id, which can be used to identify the associated business:
+
+Troubleshooting
+
+Need help?
+
+Submit a Developer API support ticket and our team will follow up.
+
+Verify your endpoint is publicly accessible and returns 2xx status codes
+
+Check that your webhook subscription includes the correct event types
+
+Ensure your access token has the required scopes for the events
+
+Confirm your endpoint responds within 10 seconds
+
+Ramp will retry webhook deliveries with exponential backoff
+
+Missed events during extended downtime may not be recoverable
+
+Consider implementing a fallback polling mechanism for critical events
+
+Delete the existing webhook subscription
+
+Create a new subscription with the updated URL
+
+Re-verify the new endpoint
+
+Use tools like ngrok to expose your local server
+
+Use webhook.site to get a temporary URL for testing webhook delivery
+
+Test with a small subset of event types initially
+
+Monitor webhook logs for successful delivery and processing
+
+A developer dashboard for webhook monitoring is coming soon
+
+For now, implement comprehensive logging in your webhook handlers
+
+Ready to implement webhooks in your integration? Here are some related guides:
+
+Accounting Integration: Learn how ready_to_sync webhooks can replace polling in your Accounting Integration
+
+Getting Started: Set up authentication and make your first API calls with our Setup Guide
+
+Bill Pay: Automate bill payment workflows with our Bill Pay Guide
+
+If you have questions or feedback about webhooks, submit a Developer API support ticket – we're here to help make your integration successful.

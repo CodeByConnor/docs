@@ -1,0 +1,95 @@
+---
+title: "Errors"
+description: "The Ramp API returns detailed error information in the response body along with standard HTTP status codes. This allows you to quickly diagnose and address issues with your API requests."
+icon: "gears"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/error-handling) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+The Ramp API returns detailed error information in the response body along with standard HTTP status codes. This allows you to quickly diagnose and address issues with your API requests.
+
+Here is an example of an error response:
+
+The Ramp API ignores extra request parameters or body fields that are not defined in the endpoint specification. This means:
+
+Sending additional query parameters that aren't documented won't cause an error
+
+Including extra fields in the request body won't cause validation failures
+
+Your requests will succeed as long as all required fields are present and valid
+
+This behavior allows for forward compatibility but means you won't receive warnings about misspelled field names or deprecated parameters. We recommend validating your requests against the schema documentation during development.
+
+Inspect HTTP Status Codes:
+
+Use status codes to identify the category of the error (e.g., 4xx for client errors, 5xx for server errors).
+
+Inspect HTTP Status Codes:
+
+Use status codes to identify the category of the error (e.g., 4xx for client errors, 5xx for server errors).
+
+Utilize the error_v2 Field:
+
+Parse the error_code and additional_info to pinpoint the issue and provide actionable feedback in your application.
+
+Utilize the error_v2 Field:
+
+Parse the error_code and additional_info to pinpoint the issue and provide actionable feedback in your application.
+
+Log Errors:
+
+Log error responses, including the x-trace-id from the response headers, for easier debugging and communication with Ramp developer support.
+
+Log Errors:
+
+Log error responses, including the x-trace-id from the response headers, for easier debugging and communication with Ramp developer support.
+
+Implement Retry Logic:
+
+For transient errors (e.g., 429 Too Many Requests or 5xx), implement exponential backoff to retry requests.
+
+Implement Retry Logic:
+
+For transient errors (e.g., 429 Too Many Requests or 5xx), implement exponential backoff to retry requests.
+
+Provide User Feedback:
+
+Use the message field to display clear and concise error messages to users, when applicable.
+
+Provide User Feedback:
+
+Use the message field to display clear and concise error messages to users, when applicable.
+
+400
+
+Bad Request - Invalid request format
+
+401
+
+Unauthorized - Invalid or missing API token
+
+403
+
+Forbidden - Insufficient permissions
+
+404
+
+Not Found - Resource doesn't exist
+
+422
+
+Unprocessable Entity - Validation errors
+
+429
+
+Too Many Requests - Rate limit exceeded
+
+500
+
+Internal Server Error - Server-side issue
+
+504
+
+Gateway Timeout - Request exceeded the 60-second timeout

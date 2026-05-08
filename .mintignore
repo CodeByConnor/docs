@@ -5,3 +5,7 @@
 # Draft content
 drafts/
 *.draft.mdx
+
+# Migration tooling + notes (not published pages)
+migration/
+migration-notes.md

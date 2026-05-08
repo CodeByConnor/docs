@@ -1,0 +1,23 @@
+---
+title: "Pagination"
+description: "Pagination allows you to retrieve an entire dataset with a series of requests, where each request fetches a portion of the data set. By loading data in smaller chunks, pagination reduces the amount of data transmitted per response and alleviates the load on the servers, ensuring faster loading times"
+icon: "gears"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/pagination) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+Pagination allows you to retrieve an entire dataset with a series of requests, where each request fetches a portion of the data set. By loading data in smaller chunks, pagination reduces the amount of data transmitted per response and alleviates the load on the servers, ensuring faster loading times and a smoother user experience.
+
+Ramp API uses a mechanism called keyset pagination to divide data into fixed-size pages. Keyset pagination relies on the use of one or more columns with unique, ordered values in the database table. These columns are typically indexed for fast retrieval.
+
+How Keyset Pagination Works
+
+Here's how keyset pagination works step-by-step:
+
+To start, initiate a request for the first page of results. The API response will include a next field, which contains the complete URL for accessing the next page of data.
+
+Utilize the URL provided in the next field to send a subsequent request for the next page of results. To construct the query for fetching this subsequent set of records, the client incorporates the start query parameter as a cursor.
+
+Repeat the process of requesting subsequent pages using the next URL and updating the start cursor parameter until the API returns a null value for the next field. This indicates that all records have been successfully fetched.

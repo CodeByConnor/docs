@@ -1,0 +1,29 @@
+---
+title: "Deferred Tasks"
+description: "Some API calls, for example requesting for a new card, require asynchronous processing. They are all denoted with /deferred/ in the request URL."
+icon: "gears"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/deferred-tasks) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+Some API calls, for example requesting for a new card, require asynchronous processing. They are all denoted with /deferred/ in the request URL.
+
+For these tasks, the API will return immediately with a task ID. This ID can then be used to call a GET deferred/status/{id} endpoint to check the status of the corresponding task.
+
+For example, let's create a new virtual card. The initial request to POST /developer/v1/cards/deferred/virtual will return an ID.
+
+This means that asynchronous task processing has started. Information about the task can be requested by calling the relevant deferred task status endpoint, in this case by calling GET /developer/v1/card/deferred/status/eca553b8-6923-42b2-aea9-8f3c15b079ff.
+
+The following information is made available:
+
+status: Represented by one of the following - STARTED, IN_PROGRESS, ERROR, SUCCESS.
+
+data: Additional details on status. If the task processing succeeded, status="SUCCESS"; in the case of creation tasks, the id field returns the new object ID. If the task processing failed, as indicated by status="ERROR", the error field is populated with information about the error.
+
+context: Static information about the initial request such as acting_user_id. For tasks with existing objects, such as card suspension, the ID of the targeted Ramp object is available.
+
+You should poll the status endpoint periodically until the task completes:
+
+Once the status becomes SUCCESS or ERROR, the task is complete and you can proceed accordingly.

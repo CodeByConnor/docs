@@ -1,33 +1,28 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: API reference
+description: Explore Ramp's REST API from the canonical OpenAPI specification.
+icon: code
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+The **API reference** tab lists operations generated from Ramp’s OpenAPI document:
 
-## Welcome
+`https://docs.ramp.com/openapi/developer-api.json`
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## Base URLs
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+| Environment | API host |
+| --- | --- |
+| Production | `https://api.ramp.com` |
+| Sandbox | `https://demo-api.ramp.com` |
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+Use OAuth 2.0 access tokens. See [Authorization](/developer-api/v1/authorization) and [Getting started](/developer-api/v1/getting-started).
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
+## Plain-text reference
+
+Ramp also publishes a generated plain-text API reference at [llms-api.txt](https://docs.ramp.com/llms-api.txt) for tooling and LLM workflows.
+
+<Tip>
+  Use the sidebar under **Endpoints** to browse by tag. If anything is missing compared to the live site, compare with [docs.ramp.com](https://docs.ramp.com/) and the OpenAPI URL above.
+</Tip>

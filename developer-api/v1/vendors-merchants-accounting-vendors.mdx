@@ -1,0 +1,303 @@
+---
+title: "Vendors, Merchants, and Accounting Vendors"
+description: "Ramp has three distinct entity types that represent \"who you're paying\" or \"who you bought from.\" They serve different purposes, live in different parts of the system, and connect to each other in specific ways."
+icon: "book-open"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/vendors-merchants-accounting-vendors) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+Ramp has three distinct entity types that represent "who you're paying" or "who you bought from." They serve different purposes, live in different parts of the system, and connect to each other in specific ways.
+
+Merchants are card transaction counterparties. They're auto-populated from card network data and read-only.
+
+Vendors are bill pay payees. They're entities you pay via ACH, check, or wire. Full CRUD.
+
+Accounting Vendors are GL coding values synced from your ERP. They're how transactions get categorized for export.
+
+A Merchant represents a business where a card transaction occurred. When someone swipes a Ramp card at Home Depot, the card network sends Ramp a merchant identifier, name, and category code (MCC). Ramp normalizes this into a Merchant record.
+
+Key characteristics:
+
+Global across all Ramp businesses (Home Depot is the same Merchant for every customer)
+
+Auto-populated from card network data. Cannot be created or modified via API.
+
+Appear on card transactions as merchant_id and merchant_name
+
+Include a logo, normalized name, and merchant category
+
+API surface:
+
+Merchants appear as fields on the Transaction object (merchant_id, merchant_name)
+
+No dedicated CRUD endpoints for merchants in the Developer API
+
+Example: A technician buys pipe fittings at Ferguson using their Ramp card. The transaction includes merchant_name: "Ferguson Enterprises" and a merchant_id that uniquely identifies Ferguson in Ramp's system.
+
+A Vendor represents an entity you pay through Ramp's bill pay system. Vendors have contacts (with email, phone, address) and bank accounts (for ACH, wire, or check payments). They're the payee on bills and vendor payments.
+
+Per-business. Each Ramp business maintains its own vendor list.
+
+Created manually by users, via bill upload, or through the API.
+
+Store payment method information (bank accounts, mailing addresses for checks)
+
+Linked to bills and payments
+
+GET
+
+/developer/v1/vendors
+
+List vendors
+
+/developer/v1/vendors/{id}
+
+Get a vendor
+
+/developer/v1/vendors/{id}/contacts
+
+Get vendor contacts
+
+/developer/v1/vendors/{id}/accounts
+
+Get vendor bank accounts
+
+PATCH
+
+/developer/v1/vendors/{vendor_id}
+
+Update vendor (including linking to accounting vendor)
+
+Key fields on a vendor:
+
+id / name / is_active
+
+vendor_contact_id (default contact for payments)
+
+vendor_account_id (default bank account for payments)
+
+accounting_vendor_remote_id (links to an Accounting Vendor, see below)
+
+Example: Your AP team sets up Ferguson Enterprises as a vendor, adds their bank account for ACH payments, and pays invoices through Ramp bill pay. Each bill references this vendor by vendor_id.
+
+For comprehensive vendor and payment workflows, refer to the Bill Pay Guide.
+
+An Accounting Vendor is a coding value used for GL categorization. It's the vendor-type accounting field that gets synced from your ERP system (NetSuite, QuickBooks, Sage, etc.).
+
+Think of it this way: your ERP has a vendor list (the entities in your chart of accounts). Accounting Vendors are Ramp's representation of that list, used so transactions can be coded to the correct vendor for export.
+
+Synced from (or pushed to) the connected ERP system
+
+Used as a coding field on both card transactions and bills
+
+Represent the ERP's vendor list, not Ramp's internal vendor list
+
+Can be auto-matched to card merchants (when a card swipe at Ferguson comes in, Ramp can auto-assign the "Ferguson" accounting vendor)
+
+/developer/v1/accounting/vendors
+
+List all accounting vendors
+
+POST
+
+Upload up to 500 vendors (batch)
+
+/developer/v1/accounting/vendors/{id}
+
+Get a single accounting vendor
+
+Update (name, code, reactivate)
+
+DELETE
+
+Deactivate
+
+Key fields on an accounting vendor:
+
+id / name / code
+
+ramp_id (Ramp's internal identifier)
+
+is_active / is_synced
+
+accounting_connection_id
+
+vendor_category_info (category classification)
+
+Example: Your QuickBooks instance has "Ferguson Enterprises" as a vendor. When you connect QuickBooks to Ramp, this vendor syncs as an Accounting Vendor. Now when transactions are coded, "Ferguson Enterprises" appears as an option in the vendor field.
+
+For more on managing your chart of accounts, refer to the Accounting Guide.
+
+How They Connect
+
+When a card transaction arrives, Ramp attempts to match the merchant to an existing Accounting Vendor by name. If a match is found, the transaction is automatically coded with that accounting vendor.
+
+If no match exists, Ramp can auto-create a new Accounting Vendor from the merchant name. This auto-creation is conditional:
+
+Per-ERP-provider: Only supported for QuickBooks, QuickBooks Desktop, NetSuite REST, and Xero. Not available for Sage, Dynamics, or other providers.
+
+Per-business toggle: Even when the ERP supports it, the business can disable auto-creation. It defaults to ON.
+
+Only when unmatched: If an existing accounting vendor already matches the merchant name, no new one is created.
+
+The matching is name-based. There is no explicit merchant_id on the Accounting Vendor object.
+
+Creating a bill pay vendor does not auto-create an accounting vendor. These are linked explicitly:
+
+Via API: PATCH a vendor with accounting_vendor_remote_id to link it to an existing accounting vendor.
+
+Via Ramp UI: Users can select or create an accounting vendor when setting up a bill pay vendor.
+
+During bulk import: CSV vendor imports can optionally create accounting vendors for each imported vendor.
+
+The link is one-directional in the API: you set accounting_vendor_remote_id on the bill pay vendor to point at the accounting vendor.
+
+When accounting vendors are synced from an ERP, Ramp can optionally auto-create bill pay vendors for them. This is controlled by a per-business setting:
+
+Off by default. The business must opt in.
+
+Two modes: Import all ERP vendors, or only import vendors that have bills in the ERP.
+
+When enabled, each ERP vendor that doesn't already have a linked bill pay vendor gets one created automatically.
+
+This is how businesses pre-populate their bill pay vendor list from their ERP.
+
+There is no direct link between a Merchant (from card swipes) and a Vendor (from bill pay) in the Developer API. They are separate entities serving different payment channels.
+
+Ramp's product UI shows a unified payee view that connects these, but this linkage is not available through the Developer API.
+
+A common scenario: Ferguson is both a card merchant (technicians buy supplies there) and a bill pay vendor (the company pays Ferguson invoices via ACH).
+
+Here's how the three entities work in this case:
+
+Card transaction: A technician swipes at Ferguson. The transaction has merchant_name: "Ferguson Enterprises". Ramp auto-matches this to the "Ferguson Enterprises" Accounting Vendor for GL coding.
+
+Bill payment: AP uploads a Ferguson invoice. The bill is assigned to the "Ferguson Enterprises" Vendor (bill pay), which has Ferguson's bank account on file. The vendor is linked to the same "Ferguson Enterprises" Accounting Vendor via accounting_vendor_remote_id.
+
+ERP export: Both the card transaction and the bill payment are coded to the same Accounting Vendor. When they export to the ERP, they both land under "Ferguson Enterprises" in the general ledger.
+
+The Accounting Vendor is the bridge. It's the entity that unifies card spend and bill pay spend for accounting purposes, even though the Merchant and Vendor are separate objects in the API.
+
+See who a card transaction was with
+
+merchant_id / merchant_name on the Transaction object
+
+Manage payees for bill pay
+
+/developer/v1/vendors (CRUD)
+
+Manage the ERP vendor list for GL coding
+
+/developer/v1/accounting/vendors (CRUD)
+
+Link a bill pay vendor to an ERP vendor
+
+PATCH /developer/v1/vendors/{id} with accounting_vendor_remote_id
+
+Code a transaction to a vendor
+
+Use accounting field selections (the vendor-type accounting field)
+
+Created by
+
+Card network (automatic)
+
+User / API
+
+ERP sync / API
+
+Scope
+
+Global (all businesses)
+
+Per-business
+
+Per-business (per ERP connection)
+
+Purpose
+
+Identify card transaction counterparty
+
+Manage bill pay payees and payment info
+
+GL coding for ERP export
+
+Mutable
+
+No (read-only)
+
+Yes (full CRUD)
+
+Has bank accounts
+
+No
+
+Yes
+
+Appears on
+
+Card transactions
+
+Bills, bill payments
+
+Both (as a coding field)
+
+API path
+
+(on Transaction object)
+
+If you're building a bill pay integration where your application creates and manages bills on behalf of Ramp customers:
+
+Create vendors via /developer/v1/vendors for each payee your users need to pay. Each vendor needs at least a name and a payment method (bank account for ACH, mailing address for check).
+
+Reference vendors on bills. When creating bills, attach the vendor_id so the bill is associated with the correct payee.
+
+Optionally link to accounting vendors. If you know which ERP vendor entry corresponds to your bill pay vendor, PATCH the vendor with accounting_vendor_remote_id to link them. This ensures bill payments are coded correctly for ERP export. If you don't manage this link, the customer or their ERP integration will handle it.
+
+You don't need to manage merchants. Merchants are card-side entities populated by the card network. They're not relevant to bill pay workflows.
+
+You don't need to manage accounting vendors unless you're replacing the customer's ERP integration. Accounting vendors are typically synced from the ERP (NetSuite, QuickBooks, Sage). If the customer has an active ERP connection, that connection owns the accounting vendor list.
+
+For Partners with Their Own Vendor Model
+
+If your platform has its own concept of vendors (e.g., you're a practice management system, field service platform, or procurement tool), you'll need to decide how Ramp's three entity types map to your vendor model.
+
+On card transactions: merchant_id and merchant_name. This is the card network's name for where the purchase happened ("Ferguson Enterprises", "The Home Depot", "McDonald's"). It's read-only and global.
+
+On bills and payments: vendor_id and vendor_name. This is the bill pay vendor the customer created in Ramp. It matches 1:1 with an entity they pay via ACH/check/wire.
+
+On accounting field selections: An accounting vendor selection, if the transaction or bill has been coded. This is the ERP vendor entry used for GL export.
+
+Not every entity that appears in Ramp needs to become a vendor in your system. Consider three categories:
+
+Bill pay vendors
+
+Ferguson (paid via ACH for materials)
+
+These are real payees. You're likely managing the bills that reference them. Mirror them in your vendor list.
+
+Recurring expense merchants
+
+Home Depot, Grainger (frequent card purchases for supplies)
+
+Maybe
+
+Useful for reporting and spend analysis. Consider importing if your users track spend by vendor. But they don't need payment info in your system since card transactions don't flow through your AP process.
+
+One-off expense merchants
+
+McDonald's, airport shop, Uber
+
+These are incidental card purchases. Creating a permanent vendor record for every one-off merchant clutters your vendor list and adds no value. Let the transaction carry the merchant name for reference.
+
+If your customers use an ERP (Sage, NetSuite, QuickBooks), the ERP integration owns the accounting vendor list. Card transactions and bill payments both get coded to accounting vendors for GL export, but that coding happens between Ramp and the ERP.
+
+Your platform doesn't need to manage accounting vendors unless you're acting as the ERP. If you need visibility into how transactions were coded, you can read the accounting field selections on transactions and bills via the API.
+
+Bill pay vendors: Create these in Ramp via /developer/v1/vendors and mirror them in your system. Keep them in sync. These are the entities your users actually pay through your platform.
+
+Card transaction merchants: Read merchant_name from transactions for display purposes. Don't auto-create vendors in your system from merchant names. Let your users decide which merchants (if any) they want to promote to full vendors.
+
+GL coding: Leave this to the customer's ERP connection. If you need to set default GL codes on vendors you create, link them to accounting vendors via accounting_vendor_remote_id. Otherwise, the customer or their accountant will handle coding.

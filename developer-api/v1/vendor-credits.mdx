@@ -1,0 +1,49 @@
+---
+title: "Vendor Credits"
+description: "This guide explains how integrators can enable and use vendor credits with the Ramp API."
+icon: "book-open"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/vendor-credits) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+This guide explains how integrators can enable and use vendor credits with the Ramp API.
+
+Note: This feature is currently in Beta.
+
+Requirements
+
+Your app must have scopes accounting:read, accounting:write, and vendors:read
+
+Note
+
+This setting is managed at the Accounting Connection level. If you plan on creating multiple Accounting Connections, you need to configure this setting for each connection.
+
+For new connections: Make a POST call to /developer/v1/accounting/connection with settings.vendor_credits_enabled set to true:
+
+For existing connections: First, retrieve your connection ID by making a GET call to /developer/v1/accounting/connection:
+
+Then make a PATCH call to /developer/v1/accounting/connection/{connection_id} with the id to enable vendor credits:
+
+Once vendor credits are enabled, users can create them in the Ramp platform:
+
+Navigate to Vendors
+
+Click into a specific vendor
+
+Click New in the right-hand corner
+
+Select Vendor Credit and fill in the required fields
+
+To list all vendor credits, make a GET call to /developer/v1/vendors/credits:
+
+Example response:
+
+List vendor credits for a specific vendor
+
+To retrieve all vendor credits associated with a specific vendor, make a GET call to /developer/v1/vendors/{vendor_id}/credits. Use the vendor_id from the response above or from your vendor records:
+
+This endpoint returns the same response format as the general credits list, but filtered to only include credits for the specified vendor.
+
+To retrieve a specific vendor credit, make a GET call to /developer/v1/vendors/credits:
