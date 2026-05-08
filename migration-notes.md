@@ -1,80 +1,73 @@
-# Ramp full migration — recovery notes
+# Ramp Docs Migration Notes
 
 ## Summary
 
-This repo was reset to the Mintlify starter baseline, then rebuilt using **Ramp’s public `llms-guides` text exports** as the source of truth (per [llms.txt](https://docs.ramp.com/llms.txt)). All **36** guide URLs from the migration manifest are present as MDX under `developer-api/v1/`. The **API reference** tab uses Ramp’s canonical OpenAPI URL. Starter-only Mintlify demo content was removed after navigation stabilized.
+This repository is a Mintlify migration preview of Ramp’s public developer documentation (`docs.ramp.com`). Content is sourced from Ramp’s machine-readable public exports, organized into Mintlify navigation groups, and published with OpenAPI-driven API reference generation.
+
+## Source materials used
+
+- `https://docs.ramp.com/llms.txt`
+- `https://docs.ramp.com/llms-guides/*.txt` (primary per-page source)
+- `https://docs.ramp.com/llms-guides.txt` (coverage cross-check)
+- `https://docs.ramp.com/llms-full.txt` (coverage cross-check)
+- `https://docs.ramp.com/llms-api.txt` (API text cross-check)
+- `https://docs.ramp.com/openapi/developer-api.json` (API Reference generation)
 
 ## What was migrated
 
-| Area | Count | Location |
-| --- | --- | --- |
-| Guide pages (from manifest) | 36 | `developer-api/v1/**/*.mdx` |
-| Home | 1 | `index.mdx` |
-| API overview | 1 | `api-reference/introduction.mdx` |
-| OpenAPI-driven reference | auto | `docs.json` → `https://docs.ramp.com/openapi/developer-api.json` |
+- Guide pages discovered from `llms.txt` and mapped via `migration/manifest.json`
+- `developer-api/v1/**/*.mdx` guide pages (36 source pages currently mapped)
+- Homepage: `index.mdx`
+- API Reference overview page: `api-reference/introduction.mdx`
+- OpenAPI-generated REST endpoint reference via `docs.json` `openapi` config
 
-### Manifest
+## Information architecture
 
-Canonical list: [migration/manifest.json](migration/manifest.json) (ignored from Mintlify build via `.mintignore`).
+`docs.json` uses two top-level tabs:
 
-### Regeneration
+- **Guides**
+  - Getting Started
+  - Developer Resources
+  - Applications
+  - Accounting
+  - Custom Records
+  - Virtual Cards
+  - Ramp Data
+  - Cards and Funds
+  - Bill Pay
+  - Agentic / MCP
+- **API Reference**
+  - Overview page
+  - Endpoints generated from Ramp OpenAPI URL
 
-To refresh guide bodies from Ramp’s servers:
+This structure mirrors Ramp’s major documentation areas while keeping Mintlify-native grouping and `root` pages for predictable sidebar behavior.
 
-```bash
-cd /path/to/docs   # directory containing docs.json
-node migration/convert-from-llms.mjs
-```
+## Mintlify components used
 
-Then restore the hand-built [developer-api/v1/introduction.mdx](developer-api/v1/introduction.mdx) if you want the Ramp-style quickstart cards (the script overwrites it).
+Across migrated pages, formatting uses Mintlify-native components where appropriate:
 
-## Source precedence
+- `Note` for source/contextual implementation notes
+- `Warning` for security-sensitive credential/token guidance
+- `Tip` for best-practice emphasis
+- `Steps` / `Step` for procedural workflows (applied to Getting Started and selected workflows)
+- `CardGroup` / `Card` for quick-navigation collections (homepage and introduction)
+- `AccordionGroup` / `Accordion` used selectively when FAQ-style expansion is natural
 
-1. `https://docs.ramp.com/llms.txt` (guide index)
-2. `https://docs.ramp.com/llms-guides/<path>.txt` (per-page body)
-3. `https://docs.ramp.com/openapi/developer-api.json` (API reference)
-4. `https://docs.ramp.com/sitemap.xml` — optional cross-check (HTTP 200 as of last QA); `llms.txt` remains the authoritative guide list for this migration.
+## QA performed
 
-## MDX conversion rules
+- `mint dev` local preview boot + page click-through validation
+- `mint validate` schema/build validation
+- `mint broken-links` internal link verification
+- Navigation/page existence check against `migration/manifest.json`
+- OpenAPI reference check using `https://docs.ramp.com/openapi/developer-api.json`
+- Starter content removal check (Mintlify template pages/directories removed)
+- Internal link review and redirect checks for legacy starter paths
 
-The converter (`migration/convert-from-llms.mjs`):
+## Known production follow-ups
 
-- Preserves Ramp `title` / `summary` / `source_url` in frontmatter and a source `<Note>`.
-- Escapes `<` as HTML entities to avoid accidental tags.
-- Fences **line-initial** JSON objects in ```json blocks.
-- Wraps **inline** one-level JSON objects in backticks so `{` does not start MDX expressions.
-
-**Not yet done to “full component parity”:** automated conversion does not infer Ramp UI **Steps**, **Accordions**, or image embeds from the plain-text export. Those must be added incrementally where the live HTML docs show them. Textual content is complete from `llms-guides`.
-
-## Branding
-
-- `logo/light.svg` and `logo/dark.svg` use a **simple text wordmark** (“Ramp”) for light/dark backgrounds — not official trademark artwork. Replace with approved Ramp brand assets when you have them.
-- Theme colors in `docs.json` approximate Ramp’s dark + lime accent (`primary` / `light`).
-
-## Redirects (starter URLs)
-
-`docs.json` includes redirects so old starter bookmarks do not 404:
-
-- `/quickstart` → `/developer-api/v1/getting-started`
-- `/development` → `/developer-api/v1/getting-started`
-
-## QA (local)
-
-| Check | Result |
-| --- | --- |
-| Node | Use **20.17+** (`nvm use 20`) — Mintlify CLI requirement |
-| `mint broken-links` | **Pass** (after MDX JSON fixes) |
-| `mint dev` | **Pass** — preview ready (port may shift if 3000–3002 are busy) |
-
-## Follow-ups (checklist alignment)
-
-- [ ] Replace text wordmark SVGs with **official** Ramp logo + favicon when available.
-- [ ] Optional: Mintlify **custom font** if brand requires it ([settings reference](https://mintlify.com/docs/organize/settings-reference)).
-- [ ] Rich component parity: map Ramp callouts / steppers / accordions from live HTML where `llms-guides` is too plain.
-- [ ] Media: pull screenshots/video only where they exist in public sources (not invented).
-- [ ] TODO (production QA): if screenshots/images are visible in rendered Ramp pages but absent from `llms-guides` exports, pull them from source/customer-approved assets before go-live.
-- [ ] CI: run `node migration/convert-from-llms.mjs` + `mint broken-links` on a schedule or before deploy if you need drift detection against Ramp’s text exports.
-
-## Starter fix (baseline)
-
-`essentials/images.mdx` had a broken relative link to Mintlify embed docs; it was updated to an absolute `https://mintlify.com/docs/content/embed` link before starter folders were removed (so `mint broken-links` was green on baseline).
+- Pull screenshots/image assets from source/customer-approved files where rendered pages reference visuals not present in `llms-guides` text exports.
+- Endpoint-by-endpoint API reference QA against production use cases.
+- Track and document any OpenAPI rendering warnings if they appear in future spec updates.
+- Replace placeholder logo/favicon with final customer-approved brand assets.
+- Optional deeper visual parity tuning within Mintlify theme/config constraints.
+- Keep endpoint docs OpenAPI-generated; avoid manually stubbing static endpoint MDX unless OpenAPI fails.

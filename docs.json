@@ -9,7 +9,7 @@
   },
   "appearance": {
     "default": "dark",
-    "strict": true
+    "strict": false
   },
   "background": {
     "color": {
@@ -25,96 +25,19 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "tabs": [
+    "groups": [
       {
-        "tab": "Guides",
-        "groups": [
+        "group": "Getting Started",
+        "pages": [
+          "developer-api/v1/introduction",
+          "developer-api/v1/getting-started",
+          "developer-api/v1/build-with-ramp",
+          "developer-api/v1/changelog",
+          "developer-api/v1/cli",
+          "developer-api/v1/agent-cards",
           {
-            "group": "Getting Started",
-            "root": "developer-api/v1/introduction",
+            "group": "MCP",
             "pages": [
-              "index",
-              "developer-api/v1/introduction",
-              "developer-api/v1/getting-started",
-              "developer-api/v1/build-with-ramp",
-              "developer-api/v1/changelog",
-              "developer-api/v1/authorization",
-              "developer-api/v1/sandbox",
-              "developer-api/v1/applications"
-            ]
-          },
-          {
-            "group": "Guides",
-            "root": "developer-api/v1/pagination",
-            "pages": [
-              "developer-api/v1/pagination",
-              "developer-api/v1/rate-limiting",
-              "developer-api/v1/error-handling",
-              "developer-api/v1/monetary-values",
-              "developer-api/v1/data-relationships",
-              "developer-api/v1/deferred-tasks",
-              "developer-api/v1/debugging",
-              "developer-api/v1/user-lifecycle",
-              "developer-api/v1/webhooks"
-            ]
-          },
-          {
-            "group": "Accounting",
-            "root": "developer-api/v1/accounting",
-            "pages": [
-              "developer-api/v1/accounting",
-              "developer-api/v1/accounting-erp-migration",
-              "developer-api/v1/sync-button",
-              "developer-api/v1/tax-codes",
-              "developer-api/v1/vendor-credits",
-              "developer-api/v1/vendors-merchants-accounting-vendors"
-            ]
-          },
-          {
-            "group": "Custom Records",
-            "root": "developer-api/v1/custom-records",
-            "pages": [
-              "developer-api/v1/custom-records",
-              "developer-api/v1/custom-records/customized-approvers"
-            ]
-          },
-          {
-            "group": "Virtual Cards",
-            "root": "developer-api/v1/virtual-cards",
-            "pages": [
-              "developer-api/v1/virtual-cards",
-              "developer-api/v1/virtual-cards-embedded"
-            ]
-          },
-          {
-            "group": "Ramp Data",
-            "root": "developer-api/v1/ramp-data",
-            "pages": [
-              "developer-api/v1/ramp-data",
-              "developer-api/v1/ramp-data/ai-index",
-              "developer-api/v1/ramp-data/ramp-rate"
-            ]
-          },
-          {
-            "group": "Cards and Funds",
-            "root": "developer-api/v1/cards-and-funds",
-            "pages": [
-              "developer-api/v1/cards-and-funds"
-            ]
-          },
-          {
-            "group": "Bill Pay",
-            "root": "developer-api/v1/bill-pay",
-            "pages": [
-              "developer-api/v1/bill-pay"
-            ]
-          },
-          {
-            "group": "Agentic / MCP",
-            "root": "developer-api/v1/mcp",
-            "pages": [
-              "developer-api/v1/cli",
-              "developer-api/v1/agent-cards",
               "developer-api/v1/mcp",
               "developer-api/v1/ramp-mcp",
               "developer-api/v1/developer-mcp"
@@ -123,17 +46,60 @@
         ]
       },
       {
-        "tab": "API reference",
-        "groups": [
+        "group": "Developer Resources",
+        "pages": [
+          "developer-api/v1/authorization",
+          "developer-api/v1/pagination",
+          "developer-api/v1/sandbox",
+          "developer-api/v1/rate-limiting",
+          "developer-api/v1/webhooks",
+          "developer-api/v1/debugging",
+          "developer-api/v1/error-handling",
+          "developer-api/v1/data-relationships",
+          "developer-api/v1/monetary-values",
+          "developer-api/v1/deferred-tasks",
           {
-            "group": "Overview",
-            "pages": ["api-reference/introduction"]
+            "group": "Accounting",
+            "pages": [
+              "developer-api/v1/accounting",
+              "developer-api/v1/accounting-erp-migration",
+              "developer-api/v1/tax-codes",
+              "developer-api/v1/vendor-credits",
+              "developer-api/v1/sync-button"
+            ]
           },
           {
-            "group": "Endpoints",
-            "openapi": "https://docs.ramp.com/openapi/developer-api.json"
-          }
+            "group": "Custom Records",
+            "pages": [
+              "developer-api/v1/custom-records",
+              "developer-api/v1/custom-records/customized-approvers"
+            ]
+          },
+          {
+            "group": "Virtual Cards",
+            "pages": [
+              "developer-api/v1/virtual-cards",
+              "developer-api/v1/virtual-cards-embedded"
+            ]
+          },
+          {
+            "group": "Ramp Data",
+            "pages": [
+              "developer-api/v1/ramp-data",
+              "developer-api/v1/ramp-data/ramp-rate",
+              "developer-api/v1/ramp-data/ai-index"
+            ]
+          },
+          "developer-api/v1/cards-and-funds",
+          "developer-api/v1/bill-pay",
+          "developer-api/v1/vendors-merchants-accounting-vendors",
+          "developer-api/v1/user-lifecycle",
+          "developer-api/v1/applications"
         ]
+      },
+      {
+        "group": "REST API",
+        "openapi": "https://docs.ramp.com/openapi/developer-api.json"
       }
     ]
   },
