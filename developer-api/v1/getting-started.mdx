@@ -1,7 +1,8 @@
 ---
 title: "Getting Started"
 description: "This guide will help you make your first Ramp API call in just a few minutes. You'll create an access token and call the Transactions API to retrieve transaction data."
-icon: "rocket"
+sidebarTitle: "Getting Started"
+icon: "play-circle"
 ---
 
 <Note>
@@ -12,50 +13,63 @@ This guide will help you make your first Ramp API call in just a few minutes. Yo
 
 This guide assumes you are a Ramp customer with admin access to your dashboard. Need a test environment for development? Request access to our Sandbox.
 
+## Create your app and get credentials
+
 First, you'll need to create a developer app to get your API credentials.
 
-In your Ramp account, go to Company → Developer (you'll need admin access).
+<Steps>
+  <Step title="Open Developer settings">
+    In your Ramp account, go to `Company -> Developer` (you'll need admin access).
+  </Step>
+  <Step title="Create a new app">
+    Click `Create New App`.
+  </Step>
+  <Step title="Name and accept terms">
+    Name your app (for example, `"API Quickstart"`) and accept the Terms.
+  </Step>
+  <Step title="Add grant type">
+    Under `Grant types`, click `Add new grant type -> select Client Credentials`.
+  </Step>
+  <Step title="Configure scopes">
+    Under `Scopes`, click `Configure allowed scopes` and select `transactions:read`.
+  </Step>
+  <Step title="Copy credentials">
+    Copy your `Client ID` and `Client Secret`.
+  </Step>
+</Steps>
 
-Click Create New App.
-
-Name your app (e.g., "API Quickstart") and accept the Terms.
-
-Under Grant types, click Add new grant type → select Client Credentials.
-
-Under Scopes, click Configure allowed scopes and select transactions:read.
-
-Copy your Client ID and Client Secret. Store them securely – you'll need them in the next step.
+<Warning>
+  Store your Client ID and Client Secret securely. You'll need them in the next step and should never expose them in client-side code or public repos.
+</Warning>
 
 For more details on authorization, see the Authorization Guide.
 
-With your credentials, request an access token. Ramp authenticates this /developer/v1/token request with HTTP Basic Auth: base64-encode client_id:client_secret and send it in the Authorization header. The token authenticates your API requests.
+## Request an access token
 
-Replace {environment-url} with:
+With your credentials, request an access token. Ramp authenticates this `/developer/v1/token` request with HTTP Basic Auth: base64-encode `client_id:client_secret` and send it in the `Authorization` header. The token authenticates your API requests.
 
-https://demo-api.ramp.com for Sandbox
+Replace `{environment-url}` with:
 
-https://api.ramp.com for Production
+- `https://demo-api.ramp.com` for Sandbox
+- `https://api.ramp.com` for Production
 
-API URLs are different from the Ramp app URLs
+### API URLs are different from Ramp app URLs
 
 The API base URL is not the same as the URL for the Ramp customer app. Make sure you're pointing your API calls at the API host, not the frontend host.
 
-Production
-
-https://api.ramp.com
-
-https://app.ramp.com
-
-Sandbox (demo)
-
-https://demo-api.ramp.com
-
-https://demo.ramp.com
+| Environment | API URL | Ramp app URL |
+| --- | --- | --- |
+| Production | `https://api.ramp.com` | `https://app.ramp.com` |
+| Sandbox (demo) | `https://demo-api.ramp.com` | `https://demo.ramp.com` |
 
 Response:
 
-Copy the access_token – you'll use it to make API calls. Tokens expire after 10 days.
+<Note>
+  Copy the `access_token` — you'll use it to make API calls. Tokens expire after 10 days.
+</Note>
 
-With your access token, you can now call the Ramp API. Let's retrieve your transactions using the GET /transactions endpoint.
+## Request transactions
 
-Add the header Authorization: Bearer &lt;YOUR_TOKEN_HERE> and make a GET request to {environment-url}/developer/v1/transactions.
+With your access token, you can now call the Ramp API. Let's retrieve your transactions using the `GET /transactions` endpoint.
+
+Add the header `Authorization: Bearer <YOUR_TOKEN_HERE>` and make a GET request to `{environment-url}/developer/v1/transactions`.

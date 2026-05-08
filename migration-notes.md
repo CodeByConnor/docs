@@ -72,6 +72,7 @@ The converter (`migration/convert-from-llms.mjs`):
 - [ ] Optional: Mintlify **custom font** if brand requires it ([settings reference](https://mintlify.com/docs/organize/settings-reference)).
 - [ ] Rich component parity: map Ramp callouts / steppers / accordions from live HTML where `llms-guides` is too plain.
 - [ ] Media: pull screenshots/video only where they exist in public sources (not invented).
+- [ ] TODO (production QA): if screenshots/images are visible in rendered Ramp pages but absent from `llms-guides` exports, pull them from source/customer-approved assets before go-live.
 - [ ] CI: run `node migration/convert-from-llms.mjs` + `mint broken-links` on a schedule or before deploy if you need drift detection against Ramp’s text exports.
 
 ## Starter fix (baseline)
