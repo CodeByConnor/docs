@@ -1,0 +1,167 @@
+---
+title: "Bill Pay"
+description: "A bill is the structured accounts payable record in Ramp—the object that powers approvals, coding, and payment."
+icon: "book-open"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/bill-pay) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+A bill is the structured accounts payable record in Ramp—the object that powers approvals, coding, and payment.
+
+For product details, see the Ramp Help Center.
+
+ERP integration: Sync bills and payments between Ramp and your accounting system
+
+Bill processing automation: Programmatically create bills that are automatically approved for payment
+
+Financial reporting: Extract bill and payment data for custom reporting and analytics
+
+How Bills Work
+
+Payments are nested within bills and do not have their own dedicated endpoints. When you create a bill via API, you include payment details in the same request. Payment info is returned as part of the bill object on GET /bills.
+
+Payments can be created alongside bills, but have limited support for updates once created.
+
+Bills move through the following statuses:
+
+Draft → Invoice uploaded, OCR extracts details
+
+Pending approval → Awaiting approver sign-off
+
+Approved → Ready for payment. Bills follow your customer's configured approval policy in Ramp.
+
+Paid → Payment processed
+
+Bills created via API are automatically approved and enter the workflow at the Approved status.
+
+Draft bill endpoints
+
+We have draft bill endpoints available to create and update draft bills through the API. Draft bills must be approved through the Ramp dashboard—approval via API is not supported. Submit a Developer API support ticket for early access.
+
+Create Bill Request Builder
+
+Use the POST /bills endpoint to create a bill. This covers the entire bill object, including the bill payment.
+
+The request requires several UUIDs. Fetch these from the endpoints below and use the response field value as the value for the request field.
+
+GET /entities
+
+id
+
+entity_id
+
+bank_accounts[].id where usage_type = BILL_PAY_BANK_ACCOUNT
+
+source_bank_account_id
+
+GET /vendors
+
+vendor_id
+
+GET /vendors/{id}/contacts
+
+vendor_contact_id
+
+GET /vendors/{id}/accounts
+
+id (for ACH/wire/SWIFT only)
+
+vendor_account_id
+
+Missing BILL_PAY_BANK_ACCOUNT?
+
+If you don't see a bank account with usage_type = BILL_PAY_BANK_ACCOUNT in your GET /entities response, Bill Pay hasn't been set up for your organization yet. Follow the steps in the Bill Pay set up guide to configure it, then retry your API call.
+
+Upload invoice PDFs or supporting documents using POST /bills/{bill_id}/attachments. This endpoint accepts multipart/form-data.
+
+Payment Methods
+
+Paying by Ramp Card earns cashback on bill payments. Two options:
+
+Existing Ramp Card – Use already-created cards for bill payments. Manually share card details with vendors, then use transaction matching to link the payment to the bill once it clears.
+
+Single-Use Virtual Card – Ramp generates a unique virtual card for each bill with the limit set to the bill amount. Two delivery options:
+
+Card delivery disabled – Card details become available once the bill is approved; manually share with vendors
+
+Card delivery enabled – Ramp automatically emails card details to the vendor's primary contact on the due date, with reminders at 2, 4, and 7 days
+
+Single-use cards auto-lock when the spending limit is reached, after 14 days (delivery enabled) or 21 days (delivery disabled). Transaction matching happens automatically once payments clear. Supports international bills in local currency.
+
+For programmatic access to full card details (PAN/CVV) or custom spending controls, see the Virtual Cards guide.
+
+To filter out one-time card transactions in the Transactions API, set has_no_sync_commit=true.
+
+These payment methods require a source_bank_account_id from GET /entities.
+
+ACH
+
+Verified vendor bank account
+
+2–3 business days
+
+Check
+
+Vendor address
+
+5–7 business days
+
+Wire
+
+Same-day (domestic)
+
+SWIFT
+
+Varies (international)
+
+Payments arrive by payment_arrival_date (cannot be a weekend or bank holiday)
+
+Non-check payments require a verified vendor bank account via GET /vendors/{id}/accounts. See Create Bill Request Builder for full schema details.
+
+Check payments require a vendor address on file
+
+Expedited ACH and Wire payments are not available via API
+
+Use webhooks to receive real-time notifications when bills are created, approved, rejected, or paid. See our Webhooks Guide for setup instructions.
+
+Bills sync automatically with direct accounting connections (QuickBooks, NetSuite, etc.). For custom integrations, see the Accounting guide.
+
+Query with sync_ready=true to find bills ready for export, then use sync_status and the returned bill status together to determine whether to sync the bill, the payment, or both.
+
+UCSV restriction
+
+Bills cannot be synced via API with Universal CSV. Use the dashboard export instead.
+
+To verify a bill matches its purchase order and item receipt:
+
+Get the bill → extract purchase_order_ids, line_items[].purchase_order_line_item_id, and inventory_line_items[].purchase_order_line_item_id
+
+Get the purchase order → extract item_receipt_ids
+
+Get the item receipt → confirm line_items[].purchase_order_line_item_id matches the bill
+
+When all three documents share the same line item IDs, you have a verified match.
+
+Current API Limitations
+
+You cannot trigger or manage bill approvals through the API
+
+You cannot mark a draft bill as approved or configure approval process logic via API
+
+Bills created via API are automatically approved
+
+Payments are nested within bills and do not have their own dedicated endpoints
+
+Payments can be created alongside bills, but have limited support for updates once created
+
+Batch payments (creating a single payment for multiple bills) are not supported
+
+OCR upload for draft bills is not currently supported via API
+
+Images of invoices cannot be attached through the API
+
+Managing entity bank accounts is not supported via API (vendor bank accounts can be managed through vendor accounts endpoints)
+
+Submit a Developer API support ticket and our team will follow up.

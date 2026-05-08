@@ -1,0 +1,88 @@
+---
+title: "Virtual Cards"
+description: "Due to PCI compliance requirements, 16-digit card numbers and CVVs are not available in production without approval. All customers will see these fields in Sandbox. Submit a Developer API support ticket to begin the qualification process for access."
+icon: "book-open"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/virtual-cards) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+Due to PCI compliance requirements, 16-digit card numbers and CVVs are not available in production without approval. All customers will see these fields in Sandbox. Submit a Developer API support ticket to begin the qualification process for access.
+
+Create and manage virtual cards with customizable spend and fraud controls, so you can safely embed payments into your apps, agents, or backend workflows.
+
+For delivering virtual cards to vendors without PCI compliance requirements, see the card payment options in our Bill Pay guide.
+
+For managing physical cards and funds, see our Cards and Funds guide.
+
+Travel Platforms - Generate single-use virtual cards for each booking to streamline reconciliation and simplify refund workflows
+
+B2B Marketplaces - Provide instant supplier payments via virtual cards while earning interchange on each transaction
+
+Procurement & AP Platforms - Replace ACH payments with card
+
+AI Agents - Enable AI agents to make autonomous payments with controlled spending limits and merchant restrictions
+
+How It Works
+
+A virtual card is generated instantly via Ramp’s API, optionally configured with:
+
+Merchant restrictions – limiting transactions to specific providers (such as airlines or hotels)
+
+Spending caps – ensuring charges do not exceed predefined thresholds
+
+Expiration dates – to auto-expire unused cards for security and refund alignment
+
+The generated card details (PAN, CVV, expiration) are securely delivered via Ramp’s Vault API. You pass these details to your vendor, travel partner, or supplier to process payment.
+
+After the card is charged, Ramp notifies you via webhook and exposes detailed transaction metadata via API.
+
+Card ID → Transaction mapping makes it easy to automate reconciliation
+
+Supports adjustments & refunds even after the card is locked or expired
+
+Webhooks are supported for notifications when a card is used, declined, or refunded
+
+Use the following python snippets to instantiate an API client, make your first limit (virtual card), and pull its PAN/CVV. You can issue a virtual card and retrieve sensitive card details in one single synchronous API request.
+
+You must have the cards:read_vault limits:write (and optionally, users:read) scopes enabled to run the sample code.
+
+You’ll need to update constants like credentials and user information throughout and ensure your Python environment includes the following packages:
+
+python-dotenv
+
+requests
+
+Copy your Client ID and Client Secret into a file named .env. The format should be:
+
+In a separate python script:
+
+At this point, CLIENT is an authenticated Ramp Developer API client.
+
+To create cards we'll use a single synchronous API request to create a limit (with an associated virtual card) and retrieve card number information.
+
+Terminating Virtual Cards
+
+When you need to permanently terminate a virtual card created via the Vault API, use the limits termination endpoint, not the cards termination endpoint.
+
+Virtual cards created through POST /vault/cards return both a spend_limit_id and a card.id. To terminate these cards:
+
+- ✅ Correct: Use POST /developer/v1/limits/{spend_limit_id}/deferred/termination
+- ❌ Incorrect: Don't use POST /developer/v1/cards/{card_id}/deferred/termination
+
+The vault API creates a spend limit with an associated virtual card. Since the card is tied to the limit, you must terminate the limit using its spend_limit_id. Terminating the limit will automatically terminate the virtual card that's associated with that limit.
+
+Note that termination is irreversible and processed asynchronously. You can check the task status using the deferred tasks endpoint.
+
+FAQ
+
+Need help?
+
+Submit a Developer API support ticket and our team will follow up.
+
+Yes, refunds can be applied even after the card is locked, ensuring reconciliation remains seamless.
+
+Ramp offers dedicated support, including access to a sandbox environment, technical documentation, and a partnerships team to guide you through implementation.
+
+Subscribe to the transactions.cleared webhook event. This event fires not only when a transaction settles, but also when refunds or reversals are processed on the card. When the webhook fires, fetch the transaction details via the API to check the amount field—a negative amount indicates a refund or reversal. See our Webhooks Guide for setup instructions.

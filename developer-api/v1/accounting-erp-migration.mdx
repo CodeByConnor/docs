@@ -1,0 +1,57 @@
+---
+title: "ERP Migration Tool"
+description: "This guide explains how integrators can set up a new API-based accounting connection to use the ERP migration tool."
+icon: "book-open"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/accounting-erp-migration) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+This guide explains how integrators can set up a new API-based accounting connection to use the ERP migration tool.
+
+Requirements
+
+Your app must have scopes accounting:read and accounting:write
+
+Make a POST to create a new, inactive accounting connection
+
+Choose a descriptive customer-facing name for remote_provider_name and set is_active to false:
+
+Example response
+
+Notes
+
+Status should be UNLINKED
+
+remote_provider_name appears in the customer UI when they switch providers
+
+Save the returned id for subsequent calls
+
+For write operations to set up the custom fields and chart of accounts, include the id from the previous request for the accounting_connection_id in the request body:
+
+2a. Upload GL accounts
+
+2b. Create a custom accounting field
+
+2c. Add options for a custom field
+
+2d. Upload vendors
+
+After setting up the COA and custom fields
+
+Call POST /developer/v1/accounting/connection/&lt;accounting_connection_id>/ready-to-migrate to mark the inactive connection as ready.
+
+This makes the new provider selectable in the customer UI
+
+Result
+
+The inactive accounting connection is marked as ready
+
+The customer can now switch to this provider in the UI
+
+Navigate to Accounting → Settings → Danger Zone → Switch Providers:
+
+Select the inactive provider by the title you chose for remote_provider_name:
+
+Follow the on-screen steps to map fields from the old connection to the new one and complete migration

@@ -1,0 +1,173 @@
+---
+title: "Ramp CLI"
+description: "Authenticate with OAuth, manage expenses, approve bills, book travel, and more from your terminal or AI agent."
+icon: "rocket"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/cli) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+Authenticate with OAuth, manage expenses, approve bills, book travel, and more from your terminal or AI agent.
+
+The CLI is open source. View the repo at github.com/ramp-public/ramp-cli.
+
+This detects your platform, downloads a pre-built binary, and sets up the ramp command.
+
+If you already have uv installed:
+
+The CLI uses OAuth to authenticate against the Ramp API. Run ramp auth login to open a browser-based OAuth flow.
+
+By default, the CLI connects to the Sandbox environment. Switch environments with the --env flag or set a default:
+
+Every CLI action runs as the user who authenticated via ramp auth login. This means:
+
+Actions are attributed to you. Approving a bill, submitting a reimbursement, or posting a comment will show your name in Ramp, just as if you performed the action in the dashboard.
+
+Permissions match your Ramp role. ramp transactions list --transactions_to_retrieve my_transactions returns your own transactions. all_transactions_across_entire_business requires admin access. If you can't see it in the dashboard, you can't see it in the CLI.
+
+Data visibility follows your access. Non-admins see only their own transactions, bills, and reimbursements. Admins can query across the business.
+
+Run ramp users me to confirm which user the CLI is acting as.
+
+The CLI supports two output modes. In a terminal, output defaults to human-readable tables. When piped, it switches to JSON automatically.
+
+--human
+
+Human-readable table output (default in terminal)
+
+--agent
+
+Machine-readable JSON output (default when piped)
+
+--wide
+
+Show all columns in table output
+
+The CLI includes a skill system for AI agent frameworks. Skills are structured instructions that teach an agent how to use Ramp for specific workflows like approving expenses, uploading receipts, or making purchases.
+
+Commands
+
+The CLI is organized into commands and resources. Commands handle setup and configuration. Resources map to API entities, each with their own set of tools.
+
+auth
+
+Login, logout, check status
+
+config
+
+Get/set CLI configuration
+
+env
+
+Show or set default environment (sandbox/production)
+
+applications
+
+Apply for a Ramp account
+
+skills
+
+Browse and install agent skill instructions
+
+feedback
+
+Submit feedback about the CLI
+
+11 resources, each with their own tools. Usage: ramp &lt;resource> &lt;tool> [OPTIONS]
+
+accounting
+
+categories, category-options
+
+bills
+
+search, get, draft, pending, approve, attachments
+
+funds
+
+list, activate, creds, lock
+
+general
+
+comment, explain, help-center, policy
+
+purchase_orders
+
+search, get
+
+receipts
+
+upload, attach
+
+reimbursements
+
+list, pending, submit, approve, edit
+
+requests
+
+pending, approve
+
+transactions
+
+list, get, approve, edit, missing, flag-missing, explain-missing, memo-suggestions, trips
+
+travel
+
+list, create, bookings, locations
+
+users
+
+me, search, org-chart
+
+Run ramp &lt;resource> &lt;tool> --help to see all available flags for any tool.
+
+Global flags
+
+These flags work with any command:
+
+--env, -e
+
+sandbox (default) or production
+
+--output, -o
+
+Output format: json or table
+
+--quiet, -q
+
+Suppress progress output
+
+--no-input
+
+Disable interactive prompts (for CI/scripts)
+
+Each tool has its own flags. Common patterns:
+
+--json TEXT
+
+Raw JSON request body (bypasses flags)
+
+--dry_run, -n
+
+Print request without sending
+
+--page_size N
+
+Results per page
+
+--next_page_cursor
+
+Resume pagination from previous response
+
+Common workflows
+
+For non-interactive environments, use --no-input to disable prompts and --quiet to suppress progress output:
+
+To contribute to the CLI or run it from source:
+
+See the LICENSE for details.
+
+Need help?
+
+Submit a Developer API support ticket and our team will follow up.

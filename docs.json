@@ -1,73 +1,87 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "Mintlify Starter Kit",
+  "name": "Ramp Developer API",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#0D0D0D",
+    "light": "#D4FF00",
+    "dark": "#000000"
   },
   "favicon": "/favicon.svg",
   "navigation": {
     "tabs": [
       {
         "tab": "Guides",
+        "icon": "book-open",
         "groups": [
           {
             "group": "Getting started",
+            "icon": "play",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "developer-api/v1/introduction",
+              "developer-api/v1/getting-started",
+              "developer-api/v1/build-with-ramp",
+              "developer-api/v1/changelog",
+              "developer-api/v1/cli",
+              "developer-api/v1/agent-cards",
+              "developer-api/v1/mcp",
+              "developer-api/v1/ramp-mcp",
+              "developer-api/v1/developer-mcp"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Guides",
+            "icon": "map",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "developer-api/v1/authorization",
+              "developer-api/v1/sandbox",
+              "developer-api/v1/applications",
+              "developer-api/v1/accounting",
+              "developer-api/v1/accounting-erp-migration",
+              "developer-api/v1/sync-button",
+              "developer-api/v1/tax-codes",
+              "developer-api/v1/vendor-credits",
+              "developer-api/v1/vendors-merchants-accounting-vendors",
+              "developer-api/v1/bill-pay",
+              "developer-api/v1/custom-records",
+              "developer-api/v1/custom-records/customized-approvers",
+              "developer-api/v1/virtual-cards",
+              "developer-api/v1/virtual-cards-embedded",
+              "developer-api/v1/ramp-data",
+              "developer-api/v1/ramp-data/ai-index",
+              "developer-api/v1/ramp-data/ramp-rate",
+              "developer-api/v1/cards-and-funds",
+              "developer-api/v1/webhooks"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Core API concepts",
+            "icon": "gears",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/components",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "Agent ready",
-            "pages": [
-              "agent-ready/prompt",
-              "agent-ready/visibility",
-              "agent-ready/contextual",
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "developer-api/v1/pagination",
+              "developer-api/v1/rate-limiting",
+              "developer-api/v1/error-handling",
+              "developer-api/v1/monetary-values",
+              "developer-api/v1/data-relationships",
+              "developer-api/v1/deferred-tasks",
+              "developer-api/v1/debugging",
+              "developer-api/v1/user-lifecycle"
             ]
           }
         ]
       },
       {
         "tab": "API reference",
+        "icon": "code",
         "groups": [
           {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
+            "group": "Overview",
+            "pages": ["api-reference/introduction"]
           },
           {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
+            "group": "Endpoints",
+            "openapi": "https://docs.ramp.com/openapi/developer-api.json"
           }
         ]
       }
@@ -75,14 +89,14 @@
     "global": {
       "anchors": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "anchor": "Ramp docs",
+          "href": "https://docs.ramp.com/",
+          "icon": "globe"
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "anchor": "OpenAPI JSON",
+          "href": "https://docs.ramp.com/openapi/developer-api.json",
+          "icon": "brackets-curly"
         }
       ]
     }
@@ -95,32 +109,43 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:hi@mintlify.com"
+        "href": "https://support.ramp.com"
       }
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "Ramp app",
+      "href": "https://app.ramp.com"
+    }
+  },
+  "api": {
+    "playground": {
+      "display": "interactive",
+      "proxy": true
+    },
+    "examples": {
+      "autogenerate": true,
+      "defaults": "required"
     }
   },
   "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "mcp", "cursor", "vscode"]
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "x": "https://x.com/tryramp",
+      "github": "https://github.com/ramp",
+      "linkedin": "https://linkedin.com/company/ramp"
     }
-  }
+  },
+  "redirects": [
+    {
+      "source": "/quickstart",
+      "destination": "/developer-api/v1/getting-started"
+    },
+    {
+      "source": "/development",
+      "destination": "/developer-api/v1/getting-started"
+    }
+  ]
 }

@@ -1,0 +1,61 @@
+---
+title: "Sandbox"
+description: "The Ramp sandbox is a testing environment where developers and partners can safely build, test, and experiment with Ramp's API without affecting live production data."
+icon: "book-open"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/sandbox) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+The Ramp sandbox is a testing environment where developers and partners can safely build, test, and experiment with Ramp's API without affecting live production data.
+
+Key features:
+
+Safe testing environment: Test integrations and applications before deploying to production
+
+API development: Access Ramp's Developer API for building custom integrations
+
+No real money movement: Demo accounts cannot process actual financial transactions
+
+How to get sandbox access
+
+Developers/Partners: Submit a request through the Ramp technology partnerships page to receive both sandbox and developer console access
+
+Existing customers: Request a sales sandbox through your Account Manager
+
+Ramp frontend
+
+https://demo.ramp.com
+
+Access the Ramp user interface for testing
+
+API
+
+https://demo-api.ramp.com
+
+Base URL for API calls in the Sandbox environment
+
+Test demo actions
+
+While building with the dev API, we support simulation actions to support testing within the Ramp sandbox environment. You can simulate user events through the demo actions panel. You can open the demo actions panel directly within the Ramp sandbox with ⌘ J.
+
+To mark a bill as paid, navigate to Bill Pay via the UX, then open the bill you want to mark as paid. Press ⌘ J to open the demo actions panel and select 'pay current bill'.
+
+Note: This demo action depends on your Bill Pay payment release setting. When enabled, it only works for bills that are approved and scheduled. When disabled, it works for all bills.
+
+For more information, see Bill Pay payment release documentation.
+
+To mark a reimbursement as paid, navigate to the reimbursements tab and select "needs review" to find pending reimbursements. Open the reimbursement you want to mark as paid, then press ⌘ J to open the demo actions panel and select "Mark reimbursement as paid".
+
+To create a transaction, you can do this from any page within the sandbox environment. Press ⌘ J to open the demo actions panel and click on "add transactions".
+
+Each demo action requires specific permissions to work properly:
+
+Admin or Business Owner role, or the AP Clerk permission
+
+Mark reimbursement as approved
+
+The direct manager of the employee who submitted the reimbursement (or a manager in their reporting chain), Admin, or Bookkeeper role
+
+Employee role or higher (Manager, Admin, or Bookkeeper). The Employee role allows users to request spend, receive cards, make purchases, and submit reimbursements. View-only Admins and Guests cannot create transactions.

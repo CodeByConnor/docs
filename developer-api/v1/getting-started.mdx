@@ -1,0 +1,61 @@
+---
+title: "Getting Started"
+description: "This guide will help you make your first Ramp API call in just a few minutes. You'll create an access token and call the Transactions API to retrieve transaction data."
+icon: "rocket"
+---
+
+<Note>
+  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/getting-started) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+</Note>
+
+This guide will help you make your first Ramp API call in just a few minutes. You'll create an access token and call the Transactions API to retrieve transaction data.
+
+This guide assumes you are a Ramp customer with admin access to your dashboard. Need a test environment for development? Request access to our Sandbox.
+
+First, you'll need to create a developer app to get your API credentials.
+
+In your Ramp account, go to Company → Developer (you'll need admin access).
+
+Click Create New App.
+
+Name your app (e.g., "API Quickstart") and accept the Terms.
+
+Under Grant types, click Add new grant type → select Client Credentials.
+
+Under Scopes, click Configure allowed scopes and select transactions:read.
+
+Copy your Client ID and Client Secret. Store them securely – you'll need them in the next step.
+
+For more details on authorization, see the Authorization Guide.
+
+With your credentials, request an access token. Ramp authenticates this /developer/v1/token request with HTTP Basic Auth: base64-encode client_id:client_secret and send it in the Authorization header. The token authenticates your API requests.
+
+Replace {environment-url} with:
+
+https://demo-api.ramp.com for Sandbox
+
+https://api.ramp.com for Production
+
+API URLs are different from the Ramp app URLs
+
+The API base URL is not the same as the URL for the Ramp customer app. Make sure you're pointing your API calls at the API host, not the frontend host.
+
+Production
+
+https://api.ramp.com
+
+https://app.ramp.com
+
+Sandbox (demo)
+
+https://demo-api.ramp.com
+
+https://demo.ramp.com
+
+Response:
+
+Copy the access_token – you'll use it to make API calls. Tokens expire after 10 days.
+
+With your access token, you can now call the Ramp API. Let's retrieve your transactions using the GET /transactions endpoint.
+
+Add the header Authorization: Bearer &lt;YOUR_TOKEN_HERE> and make a GET request to {environment-url}/developer/v1/transactions.
