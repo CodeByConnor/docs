@@ -3,70 +3,64 @@ title: "Tax Codes"
 description: "Tax code endpoints are currently in Beta. During the beta, endpoints may be subject to breaking changes, which will be announced via the Changelog."
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/tax-codes) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
-Tax code endpoints are currently in Beta. During the beta, endpoints may be subject to breaking changes, which will be announced via the Changelog.
-
 Tax codes allow you to associate tax rates with transactions in Ramp, keeping your ERP and Ramp in sync on tax classification. Setting up tax codes involves three steps, which must be performed in this order:
 
-An active accounting connection
+- An active accounting connection
 
-GL accounts uploaded (required for associating tax rates with GL accounts)
+- GL accounts uploaded (required for associating tax rates with GL accounts)
 
-accounting:read and accounting:write scopes
+- accounting:read and accounting:write scopes
 
 Tax rates define the individual rate values (e.g., GST at 5%, PST at 7%) that will be available as options within a tax code. Upload them first using POST /developer/v1/accounting/tax/rates:
 
-id
+- id
 
-Your ERP's external identifier for this tax rate
+- Your ERP's external identifier for this tax rate
 
-name
+- name
 
-Display name of the tax rate
+- Display name of the tax rate
 
-rate
+- rate
 
-Decimal value (e.g., "0.05" for 5%)
+- Decimal value (e.g., "0.05" for 5%)
 
-accounting_gl_account_id
+- accounting_gl_account_id
 
 - The ramp_id of the GL account to associate with this tax rate. Required for API-based connections.
 - Use GET /developer/v1/accounting/accounts to find the ramp_id.
 
 You can upload up to 500 tax rates per request. Batches are all-or-nothing: if any rate fails validation, the entire batch is rejected.
 
-One tax code field per connection
+- One tax code field per connection
 
 You only need to create the tax code field once. If the tax code field already exists, skip to Step 3.
 
 The tax code field is the accounting field that holds your tax code options. There can only be one active tax code field per accounting connection, so you only need to perform this step once.
 
-Use POST /developer/v1/accounting/tax/code to create it:
+### Use POST /developer/v1/accounting/tax/code to create it
 
-Name of the tax code field in your ERP system
+- Name of the tax code field in your ERP system
 
-display_name
+- display_name
 
-The label shown to users in Ramp (optional)
+- The label shown to users in Ramp (optional)
 
 Tax code options are the selectable values within your tax code field. Each option can reference one or more tax rates from Step 1.
 
 Use POST /developer/v1/accounting/tax/code/options to create them.
 
-options[].id
+- options[].id
 
-Your ERP's external identifier for this option
+- Your ERP's external identifier for this option
 
-options[].name
+- options[].name
 
-Display name of the option
+- Display name of the option
 
-options[].tax_rate_ids
+- options[].tax_rate_ids
 
-List of tax rate remote IDs (from Step 1) to associate with this option
+- List of tax rate remote IDs (from Step 1) to associate with this option
 
 You can upload up to 500 options per request.
 

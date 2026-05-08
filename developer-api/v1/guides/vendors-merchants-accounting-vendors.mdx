@@ -4,10 +4,6 @@ description: "Ramp has three distinct entity types that represent \"who you're p
 sidebarTitle: "Vendors & Merchants"
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/vendors-merchants-accounting-vendors) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
 Ramp has three distinct entity types that represent "who you're paying" or "who you bought from." They serve different purposes, live in different parts of the system, and connect to each other in specific ways.
 
 Merchants are card transaction counterparties. They're auto-populated from card network data and read-only.
@@ -18,21 +14,21 @@ Accounting Vendors are GL coding values synced from your ERP. They're how transa
 
 A Merchant represents a business where a card transaction occurred. When someone swipes a Ramp card at Home Depot, the card network sends Ramp a merchant identifier, name, and category code (MCC). Ramp normalizes this into a Merchant record.
 
-Key characteristics:
+### Key characteristics
 
-Global across all Ramp businesses (Home Depot is the same Merchant for every customer)
+- Global across all Ramp businesses (Home Depot is the same Merchant for every customer)
 
 Auto-populated from card network data. Cannot be created or modified via API.
 
-Appear on card transactions as merchant_id and merchant_name
+- Appear on card transactions as merchant_id and merchant_name
 
-Include a logo, normalized name, and merchant category
+- Include a logo, normalized name, and merchant category
 
-API surface:
+### API surface
 
-Merchants appear as fields on the Transaction object (merchant_id, merchant_name)
+- Merchants appear as fields on the Transaction object (merchant_id, merchant_name)
 
-No dedicated CRUD endpoints for merchants in the Developer API
+- No dedicated CRUD endpoints for merchants in the Developer API
 
 Example: A technician buys pipe fittings at Ferguson using their Ramp card. The transaction includes merchant_name: "Ferguson Enterprises" and a merchant_id that uniquely identifies Ferguson in Ramp's system.
 
@@ -42,43 +38,43 @@ Per-business. Each Ramp business maintains its own vendor list.
 
 Created manually by users, via bill upload, or through the API.
 
-Store payment method information (bank accounts, mailing addresses for checks)
+- Store payment method information (bank accounts, mailing addresses for checks)
 
-Linked to bills and payments
+- Linked to bills and payments
 
 GET
 
-/developer/v1/vendors
+- /developer/v1/vendors
 
-List vendors
+- List vendors
 
-/developer/v1/vendors/{id}
+- /developer/v1/vendors/{id}
 
-Get a vendor
+- Get a vendor
 
-/developer/v1/vendors/{id}/contacts
+- /developer/v1/vendors/{id}/contacts
 
-Get vendor contacts
+- Get vendor contacts
 
-/developer/v1/vendors/{id}/accounts
+- /developer/v1/vendors/{id}/accounts
 
-Get vendor bank accounts
+- Get vendor bank accounts
 
 PATCH
 
-/developer/v1/vendors/{vendor_id}
+- /developer/v1/vendors/{vendor_id}
 
-Update vendor (including linking to accounting vendor)
+- Update vendor (including linking to accounting vendor)
 
-Key fields on a vendor:
+### Key fields on a vendor
 
-id / name / is_active
+- id / name / is_active
 
-vendor_contact_id (default contact for payments)
+- vendor_contact_id (default contact for payments)
 
-vendor_account_id (default bank account for payments)
+- vendor_account_id (default bank account for payments)
 
-accounting_vendor_remote_id (links to an Accounting Vendor, see below)
+- accounting_vendor_remote_id (links to an Accounting Vendor, see below)
 
 Example: Your AP team sets up Ferguson Enterprises as a vendor, adds their bank account for ACH payments, and pays invoices through Ramp bill pay. Each bill references this vendor by vendor_id.
 
@@ -88,49 +84,49 @@ An Accounting Vendor is a coding value used for GL categorization. It's the vend
 
 Think of it this way: your ERP has a vendor list (the entities in your chart of accounts). Accounting Vendors are Ramp's representation of that list, used so transactions can be coded to the correct vendor for export.
 
-Synced from (or pushed to) the connected ERP system
+- Synced from (or pushed to) the connected ERP system
 
-Used as a coding field on both card transactions and bills
+- Used as a coding field on both card transactions and bills
 
-Represent the ERP's vendor list, not Ramp's internal vendor list
+- Represent the ERP's vendor list, not Ramp's internal vendor list
 
 Can be auto-matched to card merchants (when a card swipe at Ferguson comes in, Ramp can auto-assign the "Ferguson" accounting vendor)
 
-/developer/v1/accounting/vendors
+- /developer/v1/accounting/vendors
 
-List all accounting vendors
+- List all accounting vendors
 
 POST
 
-Upload up to 500 vendors (batch)
+- Upload up to 500 vendors (batch)
 
-/developer/v1/accounting/vendors/{id}
+- /developer/v1/accounting/vendors/{id}
 
-Get a single accounting vendor
+- Get a single accounting vendor
 
-Update (name, code, reactivate)
+- Update (name, code, reactivate)
 
 DELETE
 
-Deactivate
+- Deactivate
 
-Key fields on an accounting vendor:
+### Key fields on an accounting vendor
 
-id / name / code
+- id / name / code
 
-ramp_id (Ramp's internal identifier)
+- ramp_id (Ramp's internal identifier)
 
-is_active / is_synced
+- is_active / is_synced
 
-accounting_connection_id
+- accounting_connection_id
 
-vendor_category_info (category classification)
+- vendor_category_info (category classification)
 
 Example: Your QuickBooks instance has "Ferguson Enterprises" as a vendor. When you connect QuickBooks to Ramp, this vendor syncs as an Accounting Vendor. Now when transactions are coded, "Ferguson Enterprises" appears as an option in the vendor field.
 
 For more on managing your chart of accounts, refer to the Accounting Guide.
 
-How They Connect
+- How They Connect
 
 When a card transaction arrives, Ramp attempts to match the merchant to an existing Accounting Vendor by name. If a match is found, the transaction is automatically coded with that accounting vendor.
 
@@ -170,7 +166,7 @@ Ramp's product UI shows a unified payee view that connects these, but this linka
 
 A common scenario: Ferguson is both a card merchant (technicians buy supplies there) and a bill pay vendor (the company pays Ferguson invoices via ACH).
 
-Here's how the three entities work in this case:
+### Here's how the three entities work in this case
 
 Card transaction: A technician swipes at Ferguson. The transaction has merchant_name: "Ferguson Enterprises". Ramp auto-matches this to the "Ferguson Enterprises" Accounting Vendor for GL coding.
 
@@ -180,73 +176,73 @@ ERP export: Both the card transaction and the bill payment are coded to the same
 
 The Accounting Vendor is the bridge. It's the entity that unifies card spend and bill pay spend for accounting purposes, even though the Merchant and Vendor are separate objects in the API.
 
-See who a card transaction was with
+- See who a card transaction was with
 
-merchant_id / merchant_name on the Transaction object
+- merchant_id / merchant_name on the Transaction object
 
-Manage payees for bill pay
+- Manage payees for bill pay
 
-/developer/v1/vendors (CRUD)
+- /developer/v1/vendors (CRUD)
 
-Manage the ERP vendor list for GL coding
+- Manage the ERP vendor list for GL coding
 
-/developer/v1/accounting/vendors (CRUD)
+- /developer/v1/accounting/vendors (CRUD)
 
-Link a bill pay vendor to an ERP vendor
+- Link a bill pay vendor to an ERP vendor
 
 PATCH /developer/v1/vendors/{id} with accounting_vendor_remote_id
 
-Code a transaction to a vendor
+- Code a transaction to a vendor
 
-Use accounting field selections (the vendor-type accounting field)
+- Use accounting field selections (the vendor-type accounting field)
 
-Created by
+- Created by
 
-Card network (automatic)
+- Card network (automatic)
 
-User / API
+- User / API
 
-ERP sync / API
+- ERP sync / API
 
-Scope
+- Scope
 
-Global (all businesses)
+- Global (all businesses)
 
-Per-business
+- Per-business
 
-Per-business (per ERP connection)
+- Per-business (per ERP connection)
 
-Purpose
+- Purpose
 
-Identify card transaction counterparty
+- Identify card transaction counterparty
 
-Manage bill pay payees and payment info
+- Manage bill pay payees and payment info
 
-GL coding for ERP export
+- GL coding for ERP export
 
-Mutable
+- Mutable
 
-No (read-only)
+- No (read-only)
 
-Yes (full CRUD)
+- Yes (full CRUD)
 
-Has bank accounts
+- Has bank accounts
 
-No
+- No
 
-Yes
+- Yes
 
-Appears on
+- Appears on
 
-Card transactions
+- Card transactions
 
-Bills, bill payments
+- Bills, bill payments
 
-Both (as a coding field)
+- Both (as a coding field)
 
-API path
+- API path
 
-(on Transaction object)
+- (on Transaction object)
 
 If you're building a bill pay integration where your application creates and manages bills on behalf of Ramp customers:
 
@@ -260,7 +256,7 @@ You don't need to manage merchants. Merchants are card-side entities populated b
 
 You don't need to manage accounting vendors unless you're replacing the customer's ERP integration. Accounting vendors are typically synced from the ERP (NetSuite, QuickBooks, Sage). If the customer has an active ERP connection, that connection owns the accounting vendor list.
 
-For Partners with Their Own Vendor Model
+- For Partners with Their Own Vendor Model
 
 If your platform has its own concept of vendors (e.g., you're a practice management system, field service platform, or procurement tool), you'll need to decide how Ramp's three entity types map to your vendor model.
 
@@ -272,23 +268,23 @@ On accounting field selections: An accounting vendor selection, if the transacti
 
 Not every entity that appears in Ramp needs to become a vendor in your system. Consider three categories:
 
-Bill pay vendors
+- Bill pay vendors
 
-Ferguson (paid via ACH for materials)
+- Ferguson (paid via ACH for materials)
 
 These are real payees. You're likely managing the bills that reference them. Mirror them in your vendor list.
 
-Recurring expense merchants
+- Recurring expense merchants
 
-Home Depot, Grainger (frequent card purchases for supplies)
+- Home Depot, Grainger (frequent card purchases for supplies)
 
-Maybe
+- Maybe
 
 Useful for reporting and spend analysis. Consider importing if your users track spend by vendor. But they don't need payment info in your system since card transactions don't flow through your AP process.
 
-One-off expense merchants
+- One-off expense merchants
 
-McDonald's, airport shop, Uber
+- McDonald's, airport shop, Uber
 
 These are incidental card purchases. Creating a permanent vendor record for every one-off merchant clutters your vendor list and adds no value. Let the transaction carry the merchant name for reference.
 

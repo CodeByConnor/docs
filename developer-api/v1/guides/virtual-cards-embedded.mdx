@@ -1,0 +1,100 @@
+---
+title: "Embedded Cards"
+description: "Securely display Ramp card numbers and CVV codes in your application using an iframe."
+sidebarTitle: "Embedded Cards"
+---
+
+This guide walks you through embedding Ramp card details in your application. Card numbers and CVV codes are securely displayed to your users via an iframe—card data flows directly from Ramp to your user's browser without touching your servers.
+
+<Note>
+  If you want to programmatically create cards for a virtual card issuing flow, see the [Virtual Cards guide](/developer-api/v1/guides/virtual-cards).
+</Note>
+
+## Prerequisites
+
+Before you start, make sure you have:
+
+- A fund already created in Ramp
+- The `card_id` of the card you want to display to end users
+- A domain where your application is hosted (`parent_origin`)
+
+For information on creating funds and issuing cards, see the [Cards and Funds guide](/developer-api/v1/guides/cards-and-funds).
+
+<Warning>
+  Never store tokens client-side. All tokens should be securely stored on your backend server.
+</Warning>
+
+<Note>
+  Embedded Cards is currently in beta. Reach out via the support ticket submission flow to request a whitelist for your `parent_origin`. This is required before you can generate embed tokens for your domain.
+</Note>
+
+## Integration flow
+
+<Steps>
+  <Step title="Create a limit">
+    Create a limit using `POST /limits`. A card is automatically created and each card has a unique `card_id`.
+  </Step>
+  <Step title="Generate an embed token">
+    Your backend calls `POST /developer/v1/embedded/cards/{card_id}/embed` to generate a secure embed token.
+  </Step>
+  <Step title="Load the iframe">
+    Your frontend receives the token and loads it in an iframe pointing to Ramp's embed service.
+  </Step>
+  <Step title="Display card details">
+    The user's browser requests card details directly from Ramp. Card data never touches your servers.
+  </Step>
+</Steps>
+
+## Enable the embedded cards scope
+
+Before you can generate embed tokens, you need to enable the `embedded_cards:write` scope on your application.
+
+Enable the `embedded_cards:write` scope on your app in the developer dashboard.
+
+The `embedded_cards:write` scope requires explicit approval for production use. Contact developer support with the client ID of the app you want this scope enabled for.
+
+## Generate an embed token
+
+Create an API endpoint that accepts a `card_id` and `parent_origin`, then calls Ramp's API (`POST /developer/v1/embedded/cards/{card_id}/embed`) to generate an embed token.
+
+Request body:
+
+Response:
+
+The source guide does not include request/response example payloads in the machine-readable export.
+
+## Implement the frontend
+
+Your frontend calls your backend endpoint to get the embed token, then loads the iframe.
+
+## Test your integration
+
+Navigate to the Embedded Card Demo, paste your `embed_init_token`, and press Load Embed to test the integration.
+
+## Understand parent_origin
+
+The `parent_origin` is the domain where your application is hosted. This must exactly match the `window.location.origin` of the page where you'll embed the iframe.
+
+This is a critical security parameter. Ramp validates that the embed request is being loaded from the specified origin, preventing unauthorized domains from displaying your users' card details.
+
+### Examples
+
+- Production: `"https://your-app-domain.com"`
+- Local development: `"http://localhost:3000"`
+
+The origin must match exactly—including protocol (https:// vs http://) and port number. Mismatched origins will result in the embed failing to load.
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="How do I retrieve card IDs?">
+    You can retrieve card IDs via the Limits API or when creating cards through the [Virtual Cards guide](/developer-api/v1/guides/virtual-cards).
+  </Accordion>
+  <Accordion title="Can I use this in production?">
+    Yes, but you'll need to contact developer support to enable the `embedded_cards:write` scope for your production application.
+  </Accordion>
+  <Accordion title="Why is my embed not loading?">
+    The embed will fail to load if the `parent_origin` doesn't exactly match the origin of the page loading the iframe. Make sure to include the protocol and port number.
+  </Accordion>
+</AccordionGroup>
+

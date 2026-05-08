@@ -4,29 +4,23 @@ description: "The Custom Records API allows you to extend Ramp's data models wit
 sidebarTitle: "Custom Records"
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/custom-records) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
-The Custom Records API allows you to extend Ramp's data models with your own custom fields and data. Whether you need to add custom fields to existing Ramp objects or create entirely new data structures, this API provides the flexibility to integrate Ramp with your business processes.
-
 Custom Records are available to Ramp Plus and Ramp Enterprise customers only. For more information, contact your Ramp representative.
 
-With the Custom Records API you can:
+### With the Custom Records API you can
 
 Extend Native Objects: Add custom fields and relationships to Ramp objects such as Users, Locations, Departments, and Accounting Field Options
 
-Create Custom Tables: Build your own data structures to store business-specific information
+- Create Custom Tables: Build your own data structures to store business-specific information
 
-Link Data: Create relationships between custom and native data
+- Link Data: Create relationships between custom and native data
 
-Query and Filter: Search and retrieve data using flexible filtering options
+- Query and Filter: Search and retrieve data using flexible filtering options
 
 At this time, the API supports writes to custom record values, as well as creating and reading table and column definitions.
 
 To get started, use the Custom Records Configuration API to set up tables and columns. Then, use the Native Tables and Custom Tables API to manage and manipulate data.
 
-Native Tables vs Custom Tables
+## Native tables vs custom tables
 
 Custom Records track data in either Native Tables or Custom Tables, depending on the type of data.
 
@@ -42,62 +36,62 @@ If an external_key field is provided that does not yet exist for a table, a new 
 
 Note that external keys are immutable, case-sensitive, and must be unique within a table.
 
-This diagram shows:
+### This diagram shows
 
 - Users (Native Table)
 - Has one home_state (reference to the States table)
 - Can be a Regional Director for one or more regions (column corresponding to the regional_directors column on the Regions table)
 - Uses Ramp User UUID as primary key
 
-Has one home_state (reference to the States table)
+- Has one home_state (reference to the States table)
 
 Can be a Regional Director for one or more regions (column corresponding to the regional_directors column on the Regions table)
 
-Uses Ramp User UUID as primary key
+- Uses Ramp User UUID as primary key
 
 - States (Custom Table)
 - Has one region (reference to the Region table)
 - Has many Users (column corresponding to the home_state column on the Users table)
 - Uses external_key as primary key
 
-Has one region (reference to the Region table)
+- Has one region (reference to the Region table)
 
-Has many Users (column corresponding to the home_state column on the Users table)
+- Has many Users (column corresponding to the home_state column on the Users table)
 
-Uses external_key as primary key
+- Uses external_key as primary key
 
 - Regions (Custom Table)
 - Can have many Regional Directors (reference to the User table)
 - Has many States (column corresponding to the region column on the States table)
 - Uses external_key as primary key
 
-Can have many Regional Directors (reference to the User table)
+- Can have many Regional Directors (reference to the User table)
 
-Has many States (column corresponding to the region column on the States table)
+- Has many States (column corresponding to the region column on the States table)
 
 Note how bidirectional relationships are maintained automatically through corresponding columns.
 
 The example matches the schema shown in the diagram above, showing how Users can have a home state and be regional directors for multiple regions.
 
-Creating Tables
+## Creating Tables
 
 To add custom fields to existing Ramp objects, you need to first extend the native table. This creates a container for your custom columns on that native object:
 
 For a list of supported Ramp tables, see the Supported Native Tables section.
 
-Extending the Users table:
+### Extending the Users table
 
 Custom tables allow you to store arbitrary business data that doesn't fit into Ramp's core objects. To create a custom table, use the /configure/custom-tables endpoint:
 
-Let's create the States and Regions tables from our example:
+### Let's create the States and Regions tables from our example
 
-Creating the States table:
+### Creating the States table
 
-Creating the Regions table:
+### Creating the Regions table
 
 Note: The name (or API name), is used to identify the table across API calls. It must be a lowercase, alpha-only slug. Underscores are permitted, but not at the beginning and end. The table label is displayed to users within Ramp and can be an arbitrary string.
 
-Creating Columns
+## Creating Columns
 
 Once you've created or extended a table, you can add columns to store data. There are two types of columns: reference columns for relationships between tables, and primitive columns for simple values.
 
@@ -107,41 +101,41 @@ Reference columns create relationships between tables. When you create a referen
 
 For more information, see the Bidirectional References and has_more section.
 
-Adding a home_state column to the Users native table:
+### Adding a home_state column to the Users native table
 
-This creates:
+### This creates
 
-A home_state column on Users that references States (many Users can have one State)
+- A home_state column on Users that references States (many Users can have one State)
 
-A residents column on States that shows all Users from that state (automatically maintained)
+- A residents column on States that shows all Users from that state (automatically maintained)
 
-Adding a region column to the States table:
+### Adding a region column to the States table
 
-Adding regional_directors to the Regions table:
+### Adding regional_directors to the Regions table
 
 Primitive columns store simple data types like text or boolean values, useful for storing properties of an object, like a State's Name. To create a column, use the /columns endpoint for your table:
 
-Adding a name column to the States table:
+### Adding a name column to the States table
 
 Note: Primitive columns are typically less useful in workflows, as it's harder to make conditions based on them. If you would like to create workflow conditions that check for a specific value of a column, you should make a Custom Table and use a reference column instead.
 
-Working with Tables
+## Working with Tables
 
-To get started with either custom or native tables:
+### To get started with either custom or native tables
 
-List available tables using the /custom-tables or /native-tables endpoints
+- List available tables using the /custom-tables or /native-tables endpoints
 
-Get column definitions for a specific table using the /{table_name}/columns endpoint
+- Get column definitions for a specific table using the /{table_name}/columns endpoint
 
-Use the column information to understand the table's structure and available fields
+- Use the column information to understand the table's structure and available fields
 
-Primitive columns
+- Primitive columns
 
-A text column contains simple text/string values
+- A text column contains simple text/string values
 
-A boolean column contains true or false values
+- A boolean column contains true or false values
 
-Reference columns
+- Reference columns
 
 Reference columns are a special type of column that can reference rows on other tables. They can either be:
 
@@ -153,32 +147,32 @@ When writing a reference value, requires both Ramp column_name and Ramp object v
 - A custom_reference to a Custom Table, linking to other custom tables you've created
 - Only requires the external key for identification
 
-Only requires the external key for identification
+- Only requires the external key for identification
 
-For custom tables, you can:
+### For custom tables, you can
 
-Create or update rows using PUT /custom-tables/{table_name}/rows
+- Create or update rows using PUT /custom-tables/{table_name}/rows
 
-Delete rows using DELETE /custom-tables/{table_name}/rows
+- Delete rows using DELETE /custom-tables/{table_name}/rows
 
-Append or remove individual cells using the -/append and -/remove endpoints
+- Append or remove individual cells using the -/append and -/remove endpoints
 
-For native tables, you can:
+### For native tables, you can
 
-Read rows using GET /native-tables/{table_name}/rows
+- Read rows using GET /native-tables/{table_name}/rows
 
-Update custom field values using PUT /native-tables/{table_name}/rows
+- Update custom field values using PUT /native-tables/{table_name}/rows
 
-Append or remove custom field values using the -/append and -/remove endpoints
+- Append or remove custom field values using the -/append and -/remove endpoints
 
-When writing to rows, keep these important points in mind:
+### When writing to rows, keep these important points in mind
 
 - All rows in a single PUT request must write to the same set of columns.
 - If a row should not have a value for a column, that column must still be included in the request with an explicit null contents value.
 
 If a row should not have a value for a column, that column must still be included in the request with an explicit null contents value.
 
-For columns that reference multiple items, each reference must be a separate cell entry
+- For columns that reference multiple items, each reference must be a separate cell entry
 
 References to custom tables require only the external key, while references to native tables require both a column name and value
 
@@ -187,174 +181,174 @@ References to custom tables require only the external key, while references to n
 
 PUT operations on columns that reference multiple items (lists) will replace all existing values with the provided values. To modify list contents without replacing everything, use the -/append and -/remove endpoints
 
-A PUT operation with a null contents value will remove all values from that field
+- A PUT operation with a null contents value will remove all values from that field
 
 - For best performance:
 - Write to one reference column at a time when updating multiple references
 - Or write to multiple columns at once when setting single values
 
-Write to one reference column at a time when updating multiple references
+- Write to one reference column at a time when updating multiple references
 
-Or write to multiple columns at once when setting single values
+- Or write to multiple columns at once when setting single values
 
 Using the example Custom Table schema for Regions from above, let's setup the Northeast region to have one regional director (User email=alice@company.com) and Southwest region to have two regional directors (User id=01956422-6793-7700-adb4-3f1bd635ee49, User email=bob@company.com).
 
-Note how:
+### Note how
 
-The Northeast region has a single director, referenced by email
+- The Northeast region has a single director, referenced by email
 
-The Southwest region has two directors, one referenced by UUID and one by email
+- The Southwest region has two directors, one referenced by UUID and one by email
 
-Each director reference is a separate cell entry
+- Each director reference is a separate cell entry
 
-All references to native tables (Users) include both column_name and value
+- All references to native tables (Users) include both column_name and value
 
 For more information about referencing native tables, including supported column names for identification, see the Supported Native Tables section.
 
-Pagination and Filtering
+## Pagination and Filtering
 
-When listing rows, both custom and native tables support:
+### When listing rows, both custom and native tables support
 
-Page size control (default: 50, max: 100)
+- Page size control (default: 50, max: 100)
 
-Cursor-based pagination using the start parameter
+- Cursor-based pagination using the start parameter
 
-Filtering by external keys (custom tables) or Ramp IDs (native tables)
+- Filtering by external keys (custom tables) or Ramp IDs (native tables)
 
-Column-specific filters using filter.column_name.operation
+- Column-specific filters using filter.column_name.operation
 
 You can filter table rows by specific column values using the format filter.column_name.operation=value. The following operations are supported:
 
-one_of: Match any value in a list
+- one_of: Match any value in a list
 
-is_not: Matches no values in a list
+- is_not: Matches no values in a list
 
 For columns that reference other tables, use different identifiers based on the table type:
 
-Native tables: Use the Ramp ID as the filter value
+- Native tables: Use the Ramp ID as the filter value
 
-Custom tables: Use the external key as the filter value
+- Custom tables: Use the external key as the filter value
 
-Example filters:
+### Example filters
 
-Example query for a information about a specific Ramp user:
+### Example query for a information about a specific Ramp user
 
-This response shows:
+### This response shows
 
-The user's home state (California)
+- The user's home state (California)
 
-The regions they are a director for (West and Northwest)
+- The regions they are a director for (West and Northwest)
 
-Both relationships are maintained automatically through bidirectional references
+- Both relationships are maintained automatically through bidirectional references
 
-has_more: false indicates we have all the references for each relationship
+- has_more: false indicates we have all the references for each relationship
 
 When you create a reference between tables, the API automatically maintains the reverse relationship by creating a corresponding column:
 
-Reference Column: The column you create (e.g., home_state on Users)
+- Reference Column: The column you create (e.g., home_state on Users)
 
-Corresponding Column: Automatically created on the referenced table (e.g., residents on States)
+- Corresponding Column: Automatically created on the referenced table (e.g., residents on States)
 
-Key points about corresponding columns:
+### Key points about corresponding columns
 
-The corresponding_column_name is required when creating a reference
+- The corresponding_column_name is required when creating a reference
 
-The corresponding_column_label is optional and will be auto-generated if not provided
+- The corresponding_column_label is optional and will be auto-generated if not provided
 
-Corresponding columns have allows_writes=false - you must write to the original reference column
+- Corresponding columns have allows_writes=false - you must write to the original reference column
 
-This bidirectional relationship allows you to:
+### This bidirectional relationship allows you to
 
-Navigate data relationships in both directions
+- Navigate data relationships in both directions
 
-Maintain data consistency
+- Maintain data consistency
 
-Build complex queries from any starting point
+- Build complex queries from any starting point
 
 When a reference column's contents have has_more as true, it indicates that not all referenced rows are included in the response. To retrieve the complete set of references, you'll need to query the referenced table directly using the corresponding column. To get all states in the West region, query the states table using the corresponding column:
 
 This will return all states with the a reference to the West Region in their region column.
 
-Supported Native Tables
+## Supported Native Tables
 
 Note that when provding a contents value that references a ramp object, it should be formatted similarly to: `{"column_name": "id", "value": &lt;UUID>}`. Different Native Ramp tables allow other column names to be used as well.
 
-id
+- id
 
-User's Ramp UUID
+- User's Ramp UUID
 
-`{"column_name": "id", "value": "&lt;user_id>"}`
+- `{"column_name": "id", "value": "&lt;user_id>"}`
 
-email
+- email
 
-User's email address
+- User's email address
 
-`{"column_name": "email", "value": "user_email@company.com"}`
+- `{"column_name": "email", "value": "user_email@company.com"}`
 
-Users endpoint
+- Users endpoint
 
-Location's Ramp UUID
+- Location's Ramp UUID
 
-`{"column_name": "id", "value": "&lt;location_id>"}`
+- `{"column_name": "id", "value": "&lt;location_id>"}`
 
-name
+- name
 
-Location's name
+- Location's name
 
-`{"column_name": "name", "value": "New York City"}`
+- `{"column_name": "name", "value": "New York City"}`
 
-Locations endpoint
+- Locations endpoint
 
-Department's Ramp UUID
+- Department's Ramp UUID
 
-`{"column_name": "id", "value": "&lt;department_id>"}`
+- `{"column_name": "id", "value": "&lt;department_id>"}`
 
-Department's name
+- Department's name
 
-`{"column_name": "name", "value": "Engineering"}`
+- `{"column_name": "name", "value": "Engineering"}`
 
-Departments endpoint
+- Departments endpoint
 
-Option's Ramp UUID
+- Option's Ramp UUID
 
-`{"column_name": "id", "value": "&lt;accounting_field_option_id>"}`
+- `{"column_name": "id", "value": "&lt;accounting_field_option_id>"}`
 
-field_id::option_id
+- field_id::option_id
 
-Combined accounting field remote id and accounting field option remote id
+- Combined accounting field remote id and accounting field option remote id
 
-`{"column_name": "field_id::option_id", "value": "Projects::Project A"}`
+- `{"column_name": "field_id::option_id", "value": "Projects::Project A"}`
 
-Make sure that if you're using this format,
+- Make sure that if you're using this format,
 
-Accounting Field Options endpoint
+- Accounting Field Options endpoint
 
 Note: Use the ramp_id from the response to reference the accounting field option in a custom table or row.
 
-Entity's Ramp ID
+- Entity's Ramp ID
 
-`{"column_name": "id", "value": "&lt;entity_id>"}`
+- `{"column_name": "id", "value": "&lt;entity_id>"}`
 
-Enitity's name
+- Enitity's name
 
-`{"column_name": "name", "value": "Acme Corp LLC"}`
+- `{"column_name": "name", "value": "Acme Corp LLC"}`
 
-Entities Endpoint
+- Entities Endpoint
 
-Bill's Ramp UUID
+- Bill's Ramp UUID
 
-`{"column_name": "id", "value": "&lt;bill_id>"}`
+- `{"column_name": "id", "value": "&lt;bill_id>"}`
 
-Bills endpoint
+- Bills endpoint
 
-Transaction's Ramp UUID
+- Transaction's Ramp UUID
 
-`{"column_name": "id", "value": "&lt;transaction_id>"}`
+- `{"column_name": "id", "value": "&lt;transaction_id>"}`
 
-Transactions endpoint
+- Transactions endpoint
 
-Reimbursement's Ramp UUID
+- Reimbursement's Ramp UUID
 
-`{"column_name": "id", "value": "&lt;reimbursement_id>"}`
+- `{"column_name": "id", "value": "&lt;reimbursement_id>"}`
 
-Reimbursements endpoint
+- Reimbursements endpoint

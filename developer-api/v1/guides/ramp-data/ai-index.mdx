@@ -4,19 +4,13 @@ description: "AI Index is subject to change. Feedback and questions can be submi
 sidebarTitle: "AI Index"
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/ramp-data/ai-index) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
-AI Index is subject to change. Feedback and questions can be submitted via a Developer API support ticket.
-
 AI Index measures the adoption rate of artificial intelligence products and services among American businesses. Our sample includes more than 50,000 American businesses and billions of dollars in corporate spend using data from Ramp’s corporate card and bill pay platform.
 
 Our work builds on previous work by Bonney et al. (2024) by using Ramp transaction data to measure business adoption of AI products and services. Firms are considered to have adopted AI tools if they have a positive transaction amount for an AI product or service in a given month.
 
 Because AI Index is based on observed paid transactions, it likely undercounts total AI adoption when businesses use free tools or employees use personal accounts for work-related AI usage. For the full methodology and latest writeup, see Ramp's AI Index page.
 
-Metric definitions
+## Metric definitions
 
 AI adoption share measures the percentage of businesses in the relevant cohort that had a positive transaction amount for an AI product or service in a given month.
 
@@ -24,7 +18,7 @@ Industry sector is the NAICS-based grouping used to compare AI adoption across d
 
 Company size segment is the size bucket used to compare AI adoption across businesses of different scales. Size segments are assigned using internal company models together with internal and third-party revenue and employee-count data.
 
-REST API
+## REST API
 
 Use the public AI Index API to inspect overall AI adoption, vendor concentration, industry sector trends, and company size patterns over time.
 
@@ -44,9 +38,9 @@ Get AI adoption rates by company size segment as monthly records.
 
 All three AI Index endpoints support an optional months query parameter:
 
-months
+- months
 
-integer
+- integer
 
 1
 

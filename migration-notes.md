@@ -66,6 +66,12 @@ Across migrated pages, formatting uses Mintlify-native components where appropri
 ## Known production follow-ups
 
 - Pull screenshots/image assets from source/customer-approved files where rendered pages reference visuals not present in `llms-guides` text exports.
+- Guides pages under `developer-api/v1/guides/**` include places where rendered Ramp pages appear to rely on visuals/snippets not fully present in `llms-guides` exports; verify screenshot/media parity during production QA.
+- `llms-guides` source for several Getting Started pages references setup snippets/config examples but does not include full snippet bodies in the export. Cross-check against rendered docs before final publish:
+  - `developer-api/v1/getting-started/cli`
+  - `developer-api/v1/getting-started/agent-cards`
+  - `developer-api/v1/getting-started/ramp-mcp`
+  - `developer-api/v1/getting-started/developer-mcp`
 - Endpoint-by-endpoint API reference QA against production use cases.
 - Track and document any OpenAPI rendering warnings if they appear in future spec updates.
 - Replace placeholder logo/favicon with final customer-approved brand assets.

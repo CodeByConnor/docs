@@ -29,20 +29,62 @@
       {
         "group": "Getting Started",
         "pages": [
-          "developer-api/v1/introduction",
-          "developer-api/v1/getting-started",
-          "developer-api/v1/build-with-ramp",
+          "developer-api/v1/getting-started/introduction",
+          "developer-api/v1/getting-started/getting-started",
+          "developer-api/v1/getting-started/build-with-ramp",
           "developer-api/v1/changelog",
-          "developer-api/v1/cli",
-          "developer-api/v1/agent-cards",
+          "developer-api/v1/getting-started/cli",
+          "developer-api/v1/getting-started/agent-cards",
           {
             "group": "MCP",
             "pages": [
-              "developer-api/v1/mcp",
-              "developer-api/v1/ramp-mcp",
-              "developer-api/v1/developer-mcp"
+              "developer-api/v1/getting-started/mcp",
+              "developer-api/v1/getting-started/ramp-mcp",
+              "developer-api/v1/getting-started/developer-mcp"
             ]
           }
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          {
+            "group": "Accounting",
+            "pages": [
+              "developer-api/v1/guides/accounting",
+              "developer-api/v1/guides/accounting-erp-migration",
+              "developer-api/v1/guides/tax-codes",
+              "developer-api/v1/guides/vendor-credits",
+              "developer-api/v1/guides/sync-button"
+            ]
+          },
+          {
+            "group": "Custom Records",
+            "pages": [
+              "developer-api/v1/guides/custom-records",
+              "developer-api/v1/guides/custom-records/customized-approvers"
+            ]
+          },
+          {
+            "group": "Virtual Cards",
+            "pages": [
+              "developer-api/v1/guides/virtual-cards",
+              "developer-api/v1/guides/virtual-cards-embedded"
+            ]
+          },
+          {
+            "group": "Ramp Data",
+            "pages": [
+              "developer-api/v1/guides/ramp-data",
+              "developer-api/v1/guides/ramp-data/ramp-rate",
+              "developer-api/v1/guides/ramp-data/ai-index"
+            ]
+          },
+          "developer-api/v1/guides/cards-and-funds",
+          "developer-api/v1/guides/bill-pay",
+          "developer-api/v1/guides/vendors-merchants-accounting-vendors",
+          "developer-api/v1/guides/user-lifecycle",
+          "developer-api/v1/guides/applications"
         ]
       },
       {
@@ -57,44 +99,7 @@
           "developer-api/v1/error-handling",
           "developer-api/v1/data-relationships",
           "developer-api/v1/monetary-values",
-          "developer-api/v1/deferred-tasks",
-          {
-            "group": "Accounting",
-            "pages": [
-              "developer-api/v1/accounting",
-              "developer-api/v1/accounting-erp-migration",
-              "developer-api/v1/tax-codes",
-              "developer-api/v1/vendor-credits",
-              "developer-api/v1/sync-button"
-            ]
-          },
-          {
-            "group": "Custom Records",
-            "pages": [
-              "developer-api/v1/custom-records",
-              "developer-api/v1/custom-records/customized-approvers"
-            ]
-          },
-          {
-            "group": "Virtual Cards",
-            "pages": [
-              "developer-api/v1/virtual-cards",
-              "developer-api/v1/virtual-cards-embedded"
-            ]
-          },
-          {
-            "group": "Ramp Data",
-            "pages": [
-              "developer-api/v1/ramp-data",
-              "developer-api/v1/ramp-data/ramp-rate",
-              "developer-api/v1/ramp-data/ai-index"
-            ]
-          },
-          "developer-api/v1/cards-and-funds",
-          "developer-api/v1/bill-pay",
-          "developer-api/v1/vendors-merchants-accounting-vendors",
-          "developer-api/v1/user-lifecycle",
-          "developer-api/v1/applications"
+          "developer-api/v1/deferred-tasks"
         ]
       },
       {
@@ -129,12 +134,80 @@
   },
   "redirects": [
     {
+      "source": "/developer-api/v1/accounting",
+      "destination": "/developer-api/v1/guides/accounting"
+    },
+    {
+      "source": "/developer-api/v1/accounting-erp-migration",
+      "destination": "/developer-api/v1/guides/accounting-erp-migration"
+    },
+    {
+      "source": "/developer-api/v1/tax-codes",
+      "destination": "/developer-api/v1/guides/tax-codes"
+    },
+    {
+      "source": "/developer-api/v1/vendor-credits",
+      "destination": "/developer-api/v1/guides/vendor-credits"
+    },
+    {
+      "source": "/developer-api/v1/sync-button",
+      "destination": "/developer-api/v1/guides/sync-button"
+    },
+    {
+      "source": "/developer-api/v1/custom-records",
+      "destination": "/developer-api/v1/guides/custom-records"
+    },
+    {
+      "source": "/developer-api/v1/custom-records/customized-approvers",
+      "destination": "/developer-api/v1/guides/custom-records/customized-approvers"
+    },
+    {
+      "source": "/developer-api/v1/virtual-cards",
+      "destination": "/developer-api/v1/guides/virtual-cards"
+    },
+    {
+      "source": "/developer-api/v1/virtual-cards-embedded",
+      "destination": "/developer-api/v1/guides/virtual-cards-embedded"
+    },
+    {
+      "source": "/developer-api/v1/ramp-data",
+      "destination": "/developer-api/v1/guides/ramp-data"
+    },
+    {
+      "source": "/developer-api/v1/ramp-data/ramp-rate",
+      "destination": "/developer-api/v1/guides/ramp-data/ramp-rate"
+    },
+    {
+      "source": "/developer-api/v1/ramp-data/ai-index",
+      "destination": "/developer-api/v1/guides/ramp-data/ai-index"
+    },
+    {
+      "source": "/developer-api/v1/cards-and-funds",
+      "destination": "/developer-api/v1/guides/cards-and-funds"
+    },
+    {
+      "source": "/developer-api/v1/bill-pay",
+      "destination": "/developer-api/v1/guides/bill-pay"
+    },
+    {
+      "source": "/developer-api/v1/vendors-merchants-accounting-vendors",
+      "destination": "/developer-api/v1/guides/vendors-merchants-accounting-vendors"
+    },
+    {
+      "source": "/developer-api/v1/user-lifecycle",
+      "destination": "/developer-api/v1/guides/user-lifecycle"
+    },
+    {
+      "source": "/developer-api/v1/applications",
+      "destination": "/developer-api/v1/guides/applications"
+    },
+    {
       "source": "/quickstart",
-      "destination": "/developer-api/v1/getting-started"
+      "destination": "/developer-api/v1/getting-started/getting-started"
     },
     {
       "source": "/development",
-      "destination": "/developer-api/v1/getting-started"
+      "destination": "/developer-api/v1/getting-started/getting-started"
     }
   ]
 }

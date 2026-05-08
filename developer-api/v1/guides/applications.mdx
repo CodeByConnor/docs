@@ -3,109 +3,103 @@ title: "Applications"
 description: "The Applications API lets developers programmatically pre-fill Ramp applications on behalf of new businesses. Each application creates a new business in Ramp and kicks off an asynchronous approval process."
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/applications) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
-The Applications API lets developers programmatically pre-fill Ramp applications on behalf of new businesses. Each application creates a new business in Ramp and kicks off an asynchronous approval process.
-
 Note that this API creates and pre-fills but does not submit the application - in all cases, the end user will have to submit the application from the Ramp UX.
 
-How It Works
+## How It Works
 
 The application flow has three participants: your platform, Ramp, and the applicant (the business signing up).
 
-Submit the application — You call POST /applications with the applicant's information
+- **Submit the application** — You call POST /applications with the applicant's information
 
-Applicant receives an email — Ramp sends the applicant an email with sign-up instructions
+- **Applicant receives an email** — Ramp sends the applicant an email with sign-up instructions
 
-Applicant completes sign-up — The applicant creates their Ramp account. At this point, the user may be redirected either to the application or an OAuth consent screen.
+- **Applicant completes sign-up** — The applicant creates their Ramp account. At this point, the user may be redirected either to the application or an OAuth consent screen.
 
 User completes and submits the application in browser - the user verifies their information is correct, performs final steps and submits application for Ramp review
 
-Ramp reviews the application — The application goes through Ramp's approval process
+- **Ramp reviews the application** — The application goes through Ramp's approval process
 
-Application is approved or rejected — Subscribe to webhooks to get notified of status changes
+- **Application is approved or rejected** — Subscribe to webhooks to get notified of status changes
 
-Authorization
+## Authorization
 
 You must use the Client Credentials grant type to create a new application; the POST endpoint does not require any scopes. To read application status afterward, you'll need the applications:read scope granted on the applicant business via the Authorization Code flow.
 
-Submitting an Application
+## Submitting an application
 
 Use POST /applications to submit a new application.
 
-The POST endpoint is designed to be safely retried:
+### The POST endpoint is designed to be safely retried
 
-If the applicant's email doesn't exist in Ramp, a new business and application are created
+- If the applicant's email doesn't exist in Ramp, a new business and application are created
 
 If the email already exists and the business is still in the application stage, the invitation email is re-sent
 
-If the business is already approved, the request is a no-op
+- If the business is already approved, the request is a no-op
 
 The endpoint returns a success response in all cases, with no response body.
 
-OAuth
+## OAuth
 
 Provide oauth_authorize_params in your request to redirect the user to Ramp's OAuth consent screen after accepting their invite.
 
-You include oauth_authorize_params with a redirect_uri and state in the POST request
+- You include oauth_authorize_params with a redirect_uri and state in the POST request
 
 After the applicant accepts the invite and signs up, they're shown an OAuth consent screen asking them to grant your app the applications:read and applications:write scopes
 
-Upon approval, the applicant is redirected to your redirect_uri with an authorization code and state
+- Upon approval, the applicant is redirected to your redirect_uri with an authorization code and state
 
-You exchange the code for an access token, giving you API access to the application for the new business
+- You exchange the code for an access token, giving you API access to the application for the new business
 
-Without oauth_authorize_params, the applicant is sent directly to the Ramp application after accepting the invite — no OAuth consent screen is shown. However, you may still prompt the user to authorize the connection later.
+- **Without oauth_authorize_params, the applicant is sent directly to the Ramp application after accepting the invite** — no OAuth consent screen is shown. However, you may still prompt the user to authorize the connection later.
 
-redirect_uri requirements
+- redirect_uri requirements
 
 The redirect_uri must be registered in your app's configuration in the Ramp Developer Console and must use HTTPS (or localhost for development).
 
 After the applicant approves access, exchange the authorization code for a token as described in the Authorization Guide.
 
-After the OAuth handoff completes — or at any point after submitting an application — you can link the applicant to Ramp's sign-in page to finish their application:
+- **After the OAuth handoff completes** — or at any point after submitting an application — you can link the applicant to Ramp's sign-in page to finish their application:
 
 The email query parameter is optional. When provided, it auto-populates the email field on the sign-in page so the applicant doesn't have to type it in.
 
-Invite must be accepted first
+- Invite must be accepted first
 
 The applicant won't be able to sign in until they've accepted the email invite from Ramp. If they haven't received or accepted the invite yet, direct them to check their inbox first.
 
-Application Status Lifecycle
+## Application Status Lifecycle
 
-Each application moves through the following statuses:
+### Each application moves through the following statuses
 
 STARTED
 
-Application has been created but the applicant hasn't completed sign-up yet
+- Application has been created but the applicant hasn't completed sign-up yet
 
 IN_REVIEW
 
-Application has been submitted and is under review by Ramp
+- Application has been submitted and is under review by Ramp
 
 FOLLOW_UPS_REQUIRED
 
-Ramp needs additional information from the applicant
+- Ramp needs additional information from the applicant
 
 APPROVED
 
-Application has been approved — the business can start using Ramp
+- **Application has been approved** — the business can start using Ramp
 
 REJECTED
 
-Application has been rejected
+- Application has been rejected
 
 WITHDRAWN
 
-Application has been withdrawn by the applicant
+- Application has been withdrawn by the applicant
 
 Use GET /applications to check the current status. This endpoint requires the applications:read scope, which means you'll need an access token obtained through the Authorization Code flow.
 
 Subscribe to the applications.status_updated webhook event to get notified when an application's status changes.
 
-The webhook payload includes the application ID and its new status:
+### The webhook payload includes the application ID and its new status
 
 When you receive this event, call GET /applications to fetch the full application details and current status.
 

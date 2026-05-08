@@ -4,20 +4,16 @@ description: "This guide explains how integrators can enable and use vendor cred
 ---
 
 <Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/vendor-credits) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+  This feature is currently in beta.
 </Note>
 
-This guide explains how integrators can enable and use vendor credits with the Ramp API.
+## Requirements
 
-Note: This feature is currently in Beta.
+- Your app must have scopes accounting:read, accounting:write, and vendors:read
 
-Requirements
-
-Your app must have scopes accounting:read, accounting:write, and vendors:read
-
-Note
-
-This setting is managed at the Accounting Connection level. If you plan on creating multiple Accounting Connections, you need to configure this setting for each connection.
+<Note>
+  This setting is managed at the Accounting Connection level. If you plan on creating multiple Accounting Connections, you need to configure this setting for each connection.
+</Note>
 
 For new connections: Make a POST call to /developer/v1/accounting/connection with settings.vendor_credits_enabled set to true:
 
@@ -27,19 +23,19 @@ Then make a PATCH call to /developer/v1/accounting/connection/{connection_id} wi
 
 Once vendor credits are enabled, users can create them in the Ramp platform:
 
-Navigate to Vendors
+- Navigate to Vendors
 
-Click into a specific vendor
+- Click into a specific vendor
 
-Click New in the right-hand corner
+- Click New in the right-hand corner
 
-Select Vendor Credit and fill in the required fields
+- Select Vendor Credit and fill in the required fields
 
 To list all vendor credits, make a GET call to /developer/v1/vendors/credits:
 
-Example response:
+### Example response
 
-List vendor credits for a specific vendor
+- List vendor credits for a specific vendor
 
 To retrieve all vendor credits associated with a specific vendor, make a GET call to /developer/v1/vendors/{vendor_id}/credits. Use the vendor_id from the response above or from your vendor records:
 

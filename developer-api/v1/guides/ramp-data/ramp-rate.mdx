@@ -4,19 +4,13 @@ description: "Ramp Rate is subject to change. Feedback and questions can be subm
 sidebarTitle: "Ramp Rate"
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/ramp-data/ramp-rate) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
-Ramp Rate is subject to change. Feedback and questions can be submitted via a Developer API support ticket.
-
 Ramp Rate gives developers and AI agents a public view into software adoption across Ramp's network. Use it to explore software categories, compare vendors, and add market context to research, prompts, and product experiences. The REST API is public, so you do not need a Ramp account or API key to use it.
 
 Ramp Rate surfaces vendor adoption and usage trends based on anonymized, aggregated business spend on Ramp. The dataset is measured over a trailing 12-month window anchored to the latest complete month.
 
 For the broader methodology and vendor benchmarks, see Ramp Vendors.
 
-Metric definitions
+## Metric definitions
 
 Adoption Rate measures the share of businesses that purchased from a vendor, out of all businesses that made purchases in that software category over the past 12 months. It reflects a vendor's market penetration within its category, helping distinguish established leaders from emerging challengers serving the same use case.
 
@@ -26,7 +20,7 @@ New Adopter Rate measures the percentage of companies that adopted a vendor for 
 
 Switch Rate tracks the percentage of companies that moved from one vendor to another within the category over the past 12 months. It shows which vendors are winning competitive evaluations and gaining customers from alternatives.
 
-REST API
+## REST API
 
 Use the REST API when you want direct HTTP access to Ramp Rate data from your application, notebook, script, or workflow.
 
@@ -56,27 +50,27 @@ GET /vendors/compare?vendor_slugs={slug1}&vendor_slugs={slug2}
 
 Compare adoption metrics across 2-10 vendors.
 
-GET /categories/{category}/vendors supports these query parameters:
+### GET /categories/{category}/vendors supports these query parameters
 
-limit
+- limit
 
-integer
+- integer
 
 50
 
 Maximum number of vendors to return. Must be between 1 and 200.
 
-fte_segment
+- fte_segment
 
-string
+- string
 
-none
+- none
 
 Filter by company size segment.
 
-min_share_of_spend
+- min_share_of_spend
 
-number
+- number
 
 Filter out vendors below a spend share threshold.
 

@@ -4,12 +4,8 @@ description: "This guide explains how integrators can set up the Accounting Sync
 ---
 
 <Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/sync-button) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
+  This feature is currently in alpha.
 </Note>
-
-This guide explains how integrators can set up the Accounting Sync Button for Accounting API-based connections. Once enabled for your integration, connected customers can initiate transaction and reimbursement syncs directly from the Ramp UI.
-
-Note: This feature is currently in Alpha.
 
 Transaction Sync Button appears on Accounting > Transactions and requires transactions:read, accounting:read, and accounting:write
 
@@ -17,7 +13,7 @@ Reimbursement Sync Button appears on Accounting > Reimbursements and requires re
 
 Both flows use the same accounting connection pattern: subscribe to a webhook, enable the sync button on the connection, fetch items with the requested_to_sync filter, then POST the sync result back to /developer/v1/accounting/syncs
 
-Transaction Sync Button
+- Transaction Sync Button
 
 Create a webhook subscription with the transactions.sync_requested event type. This will fire when the sync button is pressed.
 
@@ -25,15 +21,15 @@ To create the webhook, make a POST call to the /developer/v1/webhooks endpoint a
 
 Ramp will send a POST request with a challenge to your endpoint during setup:
 
-Receive the challenge string from Ramp
+- Receive the challenge string from Ramp
 
-Respond by making a verification API call:
+### Respond by making a verification API call
 
 Enable the setting that allows the transaction sync button for this connection. Once turned on, this shows the Sync button on the Accounting > Transactions page in Ramp.
 
-Note
-
-This setting is managed at the Accounting Connection level. If you plan on creating multiple Accounting Connections, you need to configure this setting for each connection.
+<Note>
+  This setting is managed at the Accounting Connection level. If you plan on creating multiple Accounting Connections, you need to configure this setting for each connection.
+</Note>
 
 For new connections: Make a POST call to /developer/v1/accounting/connection with settings.transaction_sync_button_enabled set to true:
 
@@ -47,7 +43,9 @@ Since you've subscribed to the webhook, you will receive a transactions.sync_req
 
 For the remaining steps, keep track of the sync_request_id value.
 
-Important: 5-minute response window
+<Warning>
+- Important: 5-minute response window
+</Warning>
 
 You must respond by posting the Accounting Sync within 5 minutes of receiving the webhook. Transactions that don't have a sync posted within that window will be automatically marked as failed.
 
@@ -55,7 +53,7 @@ After receiving the transactions.sync_requested webhook, fetch the transactions 
 
 Once you've synced the transaction data to your system, make a POST call to /developer/v1/accounting/syncs. Include the sync_request_id from the webhook payload in the request body.
 
-Notes:
+### Notes
 
 You can make multiple API calls to POST /developer/v1/accounting/syncs per sync request by providing the same sync_request_id.
 
@@ -69,7 +67,7 @@ View the sync progress at the top of the screen in real time.
 
 See a summary of successes and errors (with error reasons) in the UI once the sync completes.
 
-Reimbursement Sync Button
+- Reimbursement Sync Button
 
 Create a webhook subscription with the reimbursements.sync_requested event type. This will fire when the sync button is pressed.
 

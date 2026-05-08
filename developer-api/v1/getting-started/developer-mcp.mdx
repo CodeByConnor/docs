@@ -1,0 +1,83 @@
+---
+title: "Developer MCP"
+description: "The Developer MCP server is subject to change. Feedback and questions can be submitted via a Developer API support ticket."
+sidebarTitle: "Developer MCP"
+---
+
+The Developer MCP server is subject to change. Feedback and questions can be submitted via a [Developer API support ticket](https://support.ramp.com).
+
+Developer MCP is Ramp's specialized Model Context Protocol server designed for developers building with Ramp's API. It enables AI assistants to provide real-time API help, lookup schemas, and offer implementation guidance directly within your development workflow.
+
+Unlike other Ramp MCP servers, no Ramp account is needed - making it accessible to any developer exploring or integrating with Ramp's API.
+
+## Why Use Developer MCP?
+
+- Get immediate answers to API questions without switching contexts or searching through documentation.
+- Ask natural language questions about authentication, endpoints, schemas, and implementation patterns.
+- Retrieve up-to-date OpenAPI schemas and get suggestions for related endpoints as you build, ensuring your integration stays current with Ramp's API.
+- Reduce time spent on API documentation searches and common implementation questions, letting you focus on building your integration.
+
+## Getting Started
+
+Server URL: `https://mcp.ramp.com/developer/mcp`
+
+1. Open Claude Desktop
+2. Navigate to `Settings -> Developer`
+3. Click "Edit config"
+4. Add the Developer MCP server
+5. Restart Claude Desktop - Developer MCP works instantly without any authentication
+
+Add the Developer MCP server to your Claude Code session:
+
+Then run `/mcp` in your Claude Code session to activate the server and start asking API questions.
+
+## Cursor Desktop App Required
+
+The Cursor desktop app must be installed for this one-click link to work.
+
+For clients supporting remote MCP connections, use the server URL: `https://mcp.ramp.com/developer/mcp`
+
+Refer to your client's MCP documentation for specific configuration steps.
+
+## Available Tools
+
+The Developer MCP provides three core tools for API assistance:
+
+### Intelligent documentation search with intent detection
+
+- Search Ramp's API documentation using natural language queries
+- Get contextual results based on your specific question or use case
+- Returns relevant endpoints, examples, and implementation guidance
+
+### Real-time OpenAPI schema retrieval with related endpoint suggestions
+
+- Get the complete OpenAPI schema for any Ramp API endpoint
+- Receive suggestions for related endpoints that might be useful
+- Ensures you're working with the most current API specifications
+
+### Direct feedback channel to Ramp's developer experience team
+
+- Report issues, suggest improvements, or share feedback about the API or MCP server
+- Helps continuously improve the developer experience
+
+## Troubleshooting
+
+Configuration not working:
+
+- Verify JSON syntax in configuration files
+- Ensure file paths are correct for your operating system
+- Restart your client after making configuration changes
+
+Node.js or npm issues:
+
+- Ensure Node.js is properly installed
+- Try `npm install -g mcp-remote` to install the required package
+
+Remote MCP connection issues:
+
+- Remote MCP connections are early technology. If connection fails, restart your client and try again
+- Ensure your client supports HTTP-based MCP connections
+
+Support: Submit a [Developer API support ticket](https://support.ramp.com)
+
+Feedback Tool: Use the `submit_feedback` tool directly within the MCP interface

@@ -3,19 +3,13 @@ title: "Ramp Data"
 description: "Ramp Data is subject to change as we expand the product area. Feedback and questions can be submitted via a Developer API support ticket."
 ---
 
-<Note>
-  Source: [docs.ramp.com](https://docs.ramp.com/developer-api/v1/ramp-data) — plain-text export `llms-guides`. This page is migrated for Mintlify; verify details on the live site if needed.
-</Note>
-
-Ramp Data is subject to change as we expand the product area. Feedback and questions can be submitted via a Developer API support ticket.
-
 Ramp Data is Ramp's home for public datasets, benchmarks, and AI-oriented data products.
 
 Use Ramp Data to explore product-specific guides, query public REST APIs, and connect AI clients through Ramp Data MCP.
 
 More datasets, tools, and guides will be added here over time as Ramp Data expands.
 
-Ramp Data MCP
+## Ramp Data MCP
 
 Use Ramp Data MCP when you want an AI agent to explore Ramp Data datasets conversationally.
 
@@ -23,60 +17,60 @@ Server URL: https://mcp.ramp.com/ramp-data/mcp
 
 The Ramp Data MCP server includes tools across both Ramp Rate and AI Index, so one MCP connection can query both datasets.
 
-Add the Ramp Data MCP server to your Claude Code session:
+### Add the Ramp Data MCP server to your Claude Code session
 
 Run /mcp in your session to verify the connection.
 
-Cursor desktop app required
+- Cursor desktop app required
 
 The Cursor desktop app must be installed for this one-click link to work.
 
-Or add manually to ~/.cursor/mcp.json:
+### Or add manually to ~/.cursor/mcp.json
 
-Add the following to your Claude Desktop config file:
+### Add the following to your Claude Desktop config file
 
-macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
+- macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
 
-Windows: %APPDATA%\Claude\claude_desktop_config.json
+- Windows: %APPDATA%\Claude\claude_desktop_config.json
 
 For any MCP-compatible client, use the server URL: https://mcp.ramp.com/ramp-data/mcp
 
-Ramp Rate
+## Ramp Rate
 
-ramp_rate_list_categories
+- ramp_rate_list_categories
 
 List all software categories. Call this first to discover valid category names.
 
-ramp_rate_get_category_summary
+- ramp_rate_get_category_summary
 
 Get adoption stats for a category, including adoption rate, YoY change, MoM change, growth rank, vendor count, and FTE segment breakdowns.
 
-ramp_rate_get_category_vendors
+- ramp_rate_get_category_vendors
 
 Get a ranked vendor leaderboard within a category, with optional limit, fte_segment, and min_share_of_spend filters. competitor_switch_rate is a switcher win rate, not a retention or churn metric.
 
-ramp_rate_resolve_vendor
+- ramp_rate_resolve_vendor
 
 Resolve a human-readable vendor name like Slack to its canonical vendor_slug and list its categories.
 
-ramp_rate_get_vendor_profile
+- ramp_rate_get_vendor_profile
 
 Get a vendor's full Ramp Rate profile across all categories.
 
-ramp_rate_compare_vendors
+- ramp_rate_compare_vendors
 
 Compare adoption metrics side by side for 2-10 vendors.
 
-AI Index
+## AI Index
 
-ai_index_get_adoption
+- ai_index_get_adoption
 
 Get AI adoption history with vendor breakdown. Supports months from 1 to 120; 1 returns the latest available month, and responses may contain fewer months when less history is available.
 
-ai_index_get_adoption_by_sector
+- ai_index_get_adoption_by_sector
 
 Get AI adoption history broken down by industry sector. Supports months from 1 to 120; 1 returns the latest available month, and responses may contain fewer months when less history is available.
 
-ai_index_get_adoption_by_size
+- ai_index_get_adoption_by_size
 
 Get AI adoption history broken down by company size. Supports months from 1 to 120; 1 returns the latest available month, and responses may contain fewer months when less history is available.
