@@ -26,6 +26,15 @@ node migration/convert-from-llms.mjs
 
 Then restore [developer-api/v1/getting-started/introduction.mdx](developer-api/v1/getting-started/introduction.mdx) if you use the hand-tuned quickstart layout.
 
+## Scope & Tradeoffs
+
+- Prioritized migration completeness and content correctness over pixel-perfect UI parity with docs.ramp.com.
+- Focused on preserving information architecture, guide/API coverage, and internal link integrity.
+- Automated changelog endpoint-link conversion to handle high-volume entries at scale.
+- The changelog linker uses heuristics; most links resolve correctly, but a small number may map to a near-match endpoint or require manual follow-up.
+- Validation performed with `mint validate` and `mint broken-links` (no broken links).
+- Migration utilities in `migration/` are task-focused scripts, not long-term productized tooling.
+
 ## Files
 
 | File | Role |
