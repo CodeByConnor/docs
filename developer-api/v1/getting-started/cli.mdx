@@ -4,90 +4,276 @@ description: "Authenticate with OAuth, manage expenses, approve bills, book trav
 sidebarTitle: "Ramp CLI"
 ---
 
-The CLI is open source. View the repo at [github.com/ramp-public/ramp-cli](https://github.com/ramp-public/ramp-cli).
+<Info>
+  The CLI is open source. View the repo at [github.com/ramp-public/ramp-cli](https://github.com/ramp-public/ramp-cli).
+</Info>
+
+---
+
+## Install
+
+```bash title="Install with the one-liner"
+curl -fsSL https://agents.ramp.com/install.sh | sh
+```
 
 This detects your platform, downloads a pre-built binary, and sets up the `ramp` command.
 
-If you already have `uv` installed:
+If you already have [`uv`](https://docs.astral.sh/uv/) installed:
+
+```bash title="Install with uv"
+uv tool install git+https://github.com/ramp-public/ramp-cli.git
+```
+
+---
+
+## Authentication
 
 The CLI uses OAuth to authenticate against the Ramp API. Run `ramp auth login` to open a browser-based OAuth flow.
 
-By default, the CLI connects to the Sandbox environment. Switch environments with the `--env` flag or set a default.
+```bash title="Authenticate"
+ramp auth login          # Opens browser for OAuth
+ramp auth status         # Check current auth state
+ramp auth logout         # Clear stored credentials
+```
 
-## Identity and permissions
+By default, the CLI connects to the [Sandbox](/developer-api/v1/developer-resources/sandbox) environment. Switch environments with the `--env` flag or set a default:
+
+```bash title="Environment selection"
+ramp env production              # Set default to production
+ramp env sandbox                 # Set default back to sandbox
+ramp users me --env production  # Override per-command
+```
+
+---
+
+## Permissions and user scope
 
 Every CLI action runs as the user who authenticated via `ramp auth login`. This means:
 
-- Actions are attributed to you. Approving a bill, submitting a reimbursement, or posting a comment will show your name in Ramp, just as if you performed the action in the dashboard.
-- Permissions match your Ramp role. `ramp transactions list --transactions_to_retrieve my_transactions` returns your own transactions. `all_transactions_across_entire_business` requires admin access. If you cannot see it in the dashboard, you cannot see it in the CLI.
-- Data visibility follows your access. Non-admins see only their own transactions, bills, and reimbursements. Admins can query across the business.
+- **Actions are attributed to you.** Approving a bill, submitting a reimbursement, or posting a comment will show your name in Ramp, just as if you performed the action in the dashboard.
+- **Permissions match your Ramp role.** `ramp transactions list --transactions_to_retrieve my_transactions` returns your own transactions. `all_transactions_across_entire_business` requires admin access. If you can't see it in the dashboard, you can't see it in the CLI.
+- **Data visibility follows your access.** Non-admins see only their own transactions, bills, and reimbursements. Admins can query across the business.
 
 Run `ramp users me` to confirm which user the CLI is acting as.
+
+---
 
 ## Output modes
 
 The CLI supports two output modes. In a terminal, output defaults to human-readable tables. When piped, it switches to JSON automatically.
 
-- `--human`: Human-readable table output (default in terminal)
-- `--agent`: Machine-readable JSON output (default when piped)
-- `--wide`: Show all columns in table output
+| Flag | Behavior |
+| --- | --- |
+| `--human` | Human-readable table output default in terminal |
+| `--agent` | Machine-readable JSON output default when piped |
+| `--wide` | Show all columns in table output |
+
+```bash title="Output mode examples"
+# Table output in your terminal
+ramp transactions list --transactions_to_retrieve my_transactions
+
+# Structured JSON for scripts and AI agents
+ramp users me --agent | jq '.data[0].users[0].id'
+
+# Pipe bill search results through jq
+ramp bills search --query "Acme" --agent | jq '.data[0].bills[] | {id, amount, vendor_name}'
+```
+
+---
+
+## Quick start
+
+```bash title="Your first commands"
+ramp auth login                              # Authenticate via browser
+ramp users me                                # View your user details
+ramp bills search --query "Acme"             # Search bills by vendor name
+ramp transactions list --transactions_to_retrieve my_transactions
+ramp transactions list --transactions_to_retrieve my_transactions --from_date 2025-01-01
+```
+
+---
+
+## Skills
 
 The CLI includes a skill system for AI agent frameworks. Skills are structured instructions that teach an agent how to use Ramp for specific workflows like approving expenses, uploading receipts, or making purchases.
 
+```bash title="Browse and install skills"
+# List available skills
+ramp skills list
+
+# View details for a specific skill
+ramp skills show <skill-name>
+
+# Install a skill into your agent's skill directory
+ramp skills install <skill-name>
+```
+
+---
+
 ## Commands
 
-The CLI is organized into commands and resources. Commands handle setup and configuration. Resources map to API entities, each with their own set of tools.
+The CLI is organized into **commands** and **resources**. Commands handle setup and configuration. Resources map to API entities, each with their own set of tools.
 
-### Commands
+### Top-level commands
 
-- `auth`: Login, logout, check status
-- `config`: Get/set CLI configuration
-- `env`: Show or set default environment (`sandbox`/`production`)
-- `applications`: Apply for a Ramp account
-- `skills`: Browse and install agent skill instructions
-- `feedback`: Submit feedback about the CLI
+| Command | Description |
+| --- | --- |
+| `auth` | Login, logout, check status |
+| `config` | Get/set CLI configuration |
+| `env` | Show or set default environment sandbox/production |
+| `applications` | Apply for a Ramp account |
+| `skills` | Browse and install agent skill instructions |
+| `feedback` | Submit feedback about the CLI |
 
 ### Resources
 
 11 resources, each with their own tools. Usage: `ramp <resource> <tool> [OPTIONS]`
 
-- `accounting`: categories, category-options
-- `bills`: search, get, draft, pending, approve, attachments
-- `funds`: list, activate, creds, lock
-- `general`: comment, explain, help-center, policy
-- `purchase_orders`: search, get
-- `receipts`: upload, attach
-- `reimbursements`: list, pending, submit, approve, edit
-- `requests`: pending, approve
-- `transactions`: list, get, approve, edit, missing, flag-missing, explain-missing, memo-suggestions, trips
-- `travel`: list, create, bookings, locations
-- `users`: me, search, org-chart
+| Resource | Tools |
+| --- | --- |
+| `accounting` | `categories`, `category-options` |
+| `bills` | `search`, `get`, `draft`, `pending`, `approve`, `attachments` |
+| `funds` | `list`, `activate`, `creds`, `lock` |
+| `general` | `comment`, `explain`, `help-center`, `policy` |
+| `purchase_orders` | `search`, `get` |
+| `receipts` | `upload`, `attach` |
+| `reimbursements` | `list`, `pending`, `submit`, `approve`, `edit` |
+| `requests` | `pending`, `approve` |
+| `transactions` | `list`, `get`, `approve`, `edit`, `missing`, `flag-missing`, `explain-missing`, `memo-suggestions`, `trips` |
+| `travel` | `list`, `create`, `bookings`, `locations` |
+| `users` | `me`, `search`, `org-chart` |
 
 Run `ramp <resource> <tool> --help` to see all available flags for any tool.
+
+---
 
 ## Global flags
 
 These flags work with any command:
 
-- `--env`, `-e`: `sandbox` (default) or `production`
-- `--output`, `-o`: Output format: `json` or `table`
-- `--quiet`, `-q`: Suppress progress output
-- `--no-input`: Disable interactive prompts (for CI/scripts)
+| Flag | Description |
+| --- | --- |
+| `--env`, `-e` | `sandbox` default or `production` |
+| `--output`, `-o` | Output format: `json` or `table` |
+| `--agent` | Machine-readable JSON output default when piped |
+| `--human` | Human-readable table output default in terminal |
+| `--wide` | Show all columns in table output |
+| `--quiet`, `-q` | Suppress progress output |
+| `--no-input` | Disable interactive prompts for CLI/scripts |
+
+### Tool-specific flags
 
 Each tool has its own flags. Common patterns:
 
-- `--json TEXT`: Raw JSON request body (bypasses flags)
-- `--dry_run`, `-n`: Print request without sending
-- `--page_size N`: Results per page
-- `--next_page_cursor`: Resume pagination from previous response
+| Flag | Description |
+| --- | --- |
+| `--json TEXT` | Raw JSON request body bypasses flags |
+| `--dry_run`, `-n` | Print request without sending |
+| `--page_size N` | Results per page |
+| `--next_page_cursor` | Resume pagination from previous response |
+
+---
 
 ## Common workflows
 
-For non-interactive environments, use `--no-input` to disable prompts and `--quiet` to suppress progress output.
+### Export recent transactions
+
+```bash title="List and filter transactions"
+# List your transactions from the last month
+ramp transactions list \
+  --transactions_to_retrieve my_transactions \
+  --from_date 2025-01-01
+
+# Get details for a specific transaction
+ramp transactions get abc123
+```
+
+### Approve pending bills
+
+```bash title="Review and approve bills"
+# List bills pending your approval
+ramp bills pending
+
+# Approve a specific bill
+ramp bills approve abc123
+```
+
+### Upload and attach a receipt
+
+```bash title="Attach receipts"
+# Upload a receipt (base64-encoded content)
+ramp receipts upload \
+  --filename "receipt.pdf" \
+  --content_type "application/pdf" \
+  --file_content_base64 "$(base64 < ./receipt.pdf)"
+
+# Upload and auto-attach to a transaction
+ramp receipts upload \
+  --filename "receipt.pdf" \
+  --content_type "application/pdf" \
+  --file_content_base64 "$(base64 < ./receipt.pdf)" \
+  --transaction_uuid abc123
+
+# Attach an already-uploaded receipt to a transaction
+ramp receipts attach <receipt_uuid> <transaction_uuid>
+```
+
+### Manage reimbursements
+
+```bash title="Reimbursement workflow"
+# List your reimbursements
+ramp reimbursements list
+
+# Check reimbursements pending your approval
+ramp reimbursements pending
+
+# Submit a draft reimbursement for approval
+ramp reimbursements submit <reimbursement_uuid>
+```
+
+### Book travel
+
+```bash title="Travel commands"
+# Search for travel locations
+ramp travel locations --query "San Francisco"
+
+# Create a trip
+ramp travel create --name "SF Client Visit" --start_date 2025-06-01 --end_date 2025-06-03
+```
+
+---
+
+## CI/CD and automation
+
+For non-interactive environments, use `--no-input` to disable prompts and `--quiet` to suppress progress output:
+
+```bash title="Non-interactive usage"
+ramp transactions list \
+  --transactions_to_retrieve all_transactions_across_entire_business \
+  --from_date 2025-01-01 \
+  --agent \
+  --no-input \
+  --quiet
+```
+
+---
+
+## Development
 
 To contribute to the CLI or run it from source:
 
+```bash title="Set up for development"
+git clone https://github.com/ramp-public/ramp-cli.git
+cd ramp-cli
+uv sync
+uv run pre-commit install --install-hooks
+uv run pre-commit run --all-files
+uv run pytest tests/ -v
+```
+
 See the `LICENSE` for details.
+
+---
 
 Need help?
 

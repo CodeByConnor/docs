@@ -4,7 +4,11 @@ description: "The Developer MCP server is subject to change. Feedback and questi
 sidebarTitle: "Developer MCP"
 ---
 
-The Developer MCP server is subject to change. Feedback and questions can be submitted via a [Developer API support ticket](https://support.ramp.com).
+<Warning>
+  The Developer MCP server is subject to change. Feedback and questions can be submitted via a [Developer API support ticket](https://support.ramp.com).
+</Warning>
+
+## What is Developer MCP?
 
 Developer MCP is Ramp's specialized Model Context Protocol server designed for developers building with Ramp's API. It enables AI assistants to provide real-time API help, lookup schemas, and offer implementation guidance directly within your development workflow.
 
@@ -12,14 +16,35 @@ Unlike other Ramp MCP servers, no Ramp account is needed - making it accessible 
 
 ## Why Use Developer MCP?
 
-- Get immediate answers to API questions without switching contexts or searching through documentation.
-- Ask natural language questions about authentication, endpoints, schemas, and implementation patterns.
-- Retrieve up-to-date OpenAPI schemas and get suggestions for related endpoints as you build, ensuring your integration stays current with Ramp's API.
-- Reduce time spent on API documentation searches and common implementation questions, letting you focus on building your integration.
+### Current API Documentation
+
+Developer MCP reads from Ramp's published developer docs and OpenAPI exports, so assistants can look up current guides, endpoint reference material, request bodies, response shapes, and parameter definitions.
+
+### Exact Schema Lookup
+
+Ask for an endpoint by operation ID, docs URL, HTTP method and path, or natural selector. Developer MCP can return the matching OpenAPI operation, including request and response schemas.
+
+### Faster Implementation Workflows
+
+Use Developer MCP to answer implementation questions without leaving your editor: authentication setup, pagination, webhooks, required fields, endpoint behavior, and schema details.
+
+## Example Use Cases
+
+```
+"How do I set up OAuth with the Ramp API?"
+"What fields are required to create a bill?"
+"Show me the schema for POST /developer/v1/token"
+"Find the endpoint for deleting an accounting connection"
+"How do I verify webhook signatures?"
+"Resolve this docs URL and show me the matching API operation"
+"Read the webhooks guide and summarize the implementation steps"
+```
 
 ## Getting Started
 
 Server URL: `https://mcp.ramp.com/developer/mcp`
+
+### Claude Desktop
 
 1. Open Claude Desktop
 2. Navigate to `Settings -> Developer`
@@ -27,40 +52,171 @@ Server URL: `https://mcp.ramp.com/developer/mcp`
 4. Add the Developer MCP server
 5. Restart Claude Desktop - Developer MCP works instantly without any authentication
 
+```json title="Claude Desktop Configuration"
+{
+  "mcpServers": {
+    "ramp-developer": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.ramp.com/developer/mcp"]
+    }
+  }
+}
+```
+
+### Claude Code
+
 Add the Developer MCP server to your Claude Code session:
+
+```bash title="Add Developer MCP to Claude Code"
+claude mcp add --transport http ramp-developer-mcp https://mcp.ramp.com/developer/mcp
+```
 
 Then run `/mcp` in your Claude Code session to activate the server and start asking API questions.
 
-## Cursor Desktop App Required
+### Cursor
 
-The Cursor desktop app must be installed for this one-click link to work.
+<Note>
+  The Cursor desktop app must be installed for this one-click link to work.
+</Note>
 
-For clients supporting remote MCP connections, use the server URL: `https://mcp.ramp.com/developer/mcp`
+Or add manually to `~/.cursor/mcp.json`:
+
+```json title="Cursor MCP Configuration"
+{
+  "mcpServers": {
+    "ramp-developer": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.ramp.com/developer/mcp"]
+    }
+  }
+}
+```
+
+### Other MCP Clients
+
+For clients supporting remote MCP connections, use the server URL:
+
+```
+https://mcp.ramp.com/developer/mcp
+```
 
 Refer to your client's MCP documentation for specific configuration steps.
 
 ## Available Tools
 
-The Developer MCP provides three core tools for API assistance:
+The Developer MCP provides tools for API assistance.
 
-### Intelligent documentation search with intent detection
+### developer_docs_search
 
-- Search Ramp's API documentation using natural language queries
-- Get contextual results based on your specific question or use case
-- Returns relevant endpoints, examples, and implementation guidance
+Search Ramp's API documentation using natural language queries.
 
-### Real-time OpenAPI schema retrieval with related endpoint suggestions
+Use this first for broad questions like OAuth setup, pagination, webhooks, or finding the right endpoint. Results can include guide pages and API operations. API results include fields like `operation_id`, `method`, `endpoint_path`, and `docs_url`.
 
-- Get the complete OpenAPI schema for any Ramp API endpoint
-- Receive suggestions for related endpoints that might be useful
-- Ensures you're working with the most current API specifications
+### developer_docs_schema
 
-### Direct feedback channel to Ramp's developer experience team
+Return the OpenAPI operation object for one endpoint.
 
-- Report issues, suggest improvements, or share feedback about the API or MCP server
-- Helps continuously improve the developer experience
+You can select an operation by:
+
+```
+operation_id
+input
+method + path
+```
+
+Examples:
+
+```
+operation_id: post_token
+input: POST /developer/v1/token
+method: DELETE
+path: /developer/v1/bills/{bill_id}
+```
+
+If a selector is ambiguous, the tool returns matching operations so the assistant can retry with a more specific operation ID or `method + path`.
+
+### developer_docs_resolve
+
+Resolve a pasted docs artifact to a canonical guide, file, or API operation.
+
+Accepted inputs include docs URLs, guide slugs, virtual paths, operation IDs, `METHOD /developer/v1/...`, and bare endpoint paths.
+
+### developer_docs_read
+
+Read one exported docs file by virtual path.
+
+Examples:
+
+```
+/guides/webhooks.txt
+/api/reference.txt
+/openapi/developer-api.json
+```
+
+### developer_docs_list
+
+List files and directories in the docs virtual filesystem.
+
+Useful for browsing guide exports under paths like:
+
+```
+/
+/guides
+/guides/ramp-data
+/openapi
+```
+
+### developer_docs_root
+
+Return the root overview of the available developer docs virtual filesystem.
+
+### developer_submit_feedback
+
+Report issues, suggest improvements, or share feedback about the API or MCP server.
+
+This helps continuously improve the developer experience.
+
+## Recommended Workflow
+
+### For API Questions
+
+Use `developer_docs_search` first when asking broad implementation questions.
+
+Examples:
+
+```
+"How do I set up OAuth?"
+"How does pagination work?"
+"How do I verify webhook signatures?"
+```
+
+### For Endpoint Implementation
+
+Use `developer_docs_schema` when you already know the endpoint, method, path, or operation ID.
+
+Examples:
+
+```
+"Show me the schema for POST /developer/v1/token"
+"Get the OpenAPI operation for post_token"
+"Show request and response fields for DELETE /developer/v1/bills/{bill_id}"
+```
+
+### For Pasted URLs or Unknown Identifiers
+
+Use `developer_docs_resolve` when you have a docs URL, virtual path, operation ID, or endpoint path and want the canonical matching docs artifact.
+
+Examples:
+
+```
+"Resolve this docs URL and show the matching API operation"
+"Resolve /developer/v1/token"
+"Resolve post_token"
+```
 
 ## Troubleshooting
+
+### Connection Issues
 
 Configuration not working:
 
@@ -77,6 +233,17 @@ Remote MCP connection issues:
 
 - Remote MCP connections are early technology. If connection fails, restart your client and try again
 - Ensure your client supports HTTP-based MCP connections
+
+### Tool Result Issues
+
+If tool results are incomplete or ambiguous:
+
+- Use a more specific endpoint path
+- Include the HTTP method with the path
+- Ask for an operation ID when available
+- Use `developer_docs_resolve` for pasted URLs or unknown identifiers
+
+### Getting Help
 
 Support: Submit a [Developer API support ticket](https://support.ramp.com)
 

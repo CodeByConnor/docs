@@ -4,19 +4,31 @@ description: "Ramp Rate is subject to change. Feedback and questions can be subm
 sidebarTitle: "Ramp Rate"
 ---
 
+## What is Ramp Rate?
+
 Ramp Rate gives developers and AI agents a public view into software adoption across Ramp's network. Use it to explore software categories, compare vendors, and add market context to research, prompts, and product experiences. The REST API is public, so you do not need a Ramp account or API key to use it.
+
+## Methodology
 
 Ramp Rate surfaces vendor adoption and usage trends based on anonymized, aggregated business spend on Ramp. The dataset is measured over a trailing 12-month window anchored to the latest complete month.
 
-For the broader methodology and vendor benchmarks, see Ramp Vendors.
+For the broader methodology and vendor benchmarks, see [Ramp Vendors](https://ramp.com/vendors).
 
 ## Metric definitions
 
+### Adoption Rate
+
 Adoption Rate measures the share of businesses that purchased from a vendor, out of all businesses that made purchases in that software category over the past 12 months. It reflects a vendor's market penetration within its category, helping distinguish established leaders from emerging challengers serving the same use case.
+
+### Growth Rate
 
 Growth Rate measures the period-over-period delta in a vendor's Adoption Rate. It captures how quickly a vendor's market share is accelerating, including momentum from new customers, expanding usage within existing customers, or broader market presence.
 
+### New Adopter Rate
+
 New Adopter Rate measures the percentage of companies that adopted a vendor for the first time over the past 12 months. This helps identify which vendors are most effective at attracting net-new users entering the category.
+
+### Switch Rate
 
 Switch Rate tracks the percentage of companies that moved from one vendor to another within the category over the past 12 months. It shows which vendors are winning competitive evaluations and gaining customers from alternatives.
 
@@ -24,60 +36,52 @@ Switch Rate tracks the percentage of companies that moved from one vendor to ano
 
 Use the REST API when you want direct HTTP access to Ramp Rate data from your application, notebook, script, or workflow.
 
-Base URL: https://api.ramp.com/v1/public/ramp-rate
+Base URL: `https://api.ramp.com/v1/public/ramp-rate`
 
-GET /categories
+| Endpoint | Description |
+| --- | --- |
+| `GET /categories` | List all Ramp Rate software categories. |
+| `GET /categories/{category}/summary` | Get adoption stats for a single category. |
+| `GET /categories/{category}/vendors` | Get a ranked vendor leaderboard within a category. |
+| `GET /vendors/resolve?vendor_name={name}` | Resolve a vendor name to its canonical `vendor_slug`. |
+| `GET /vendors/{vendor_slug}/profile` | Get a vendor's Ramp Rate profile across all of its categories. |
+| `GET /vendors/compare?vendor_slugs={slug1}&vendor_slugs={slug2}` | Compare adoption metrics across 2-10 vendors. |
 
-List all Ramp Rate software categories.
+### Quick start
 
-GET /categories/{category}/summary
+```shell title="Ramp Rate quick start"
+# 1. Browse categories
+curl -s https://api.ramp.com/v1/public/ramp-rate/categories | jq '.categories[].software_category'
 
-Get adoption stats for a single category.
+# 2. Pick a category and see the leaderboard
+curl -s "https://api.ramp.com/v1/public/ramp-rate/categories/Observability/vendors?limit=5" | jq
 
-GET /categories/{category}/vendors
+# 3. Look up a specific vendor
+curl -s "https://api.ramp.com/v1/public/ramp-rate/vendors/resolve?vendor_name=Datadog" | jq
 
-Get a ranked vendor leaderboard within a category.
+# 4. Get the vendor's full profile
+curl -s https://api.ramp.com/v1/public/ramp-rate/vendors/datadog/profile | jq
 
-GET /vendors/resolve?vendor_name={name}
+# 5. Compare two vendors head-to-head
+curl -s "https://api.ramp.com/v1/public/ramp-rate/vendors/compare?vendor_slugs=datadog&vendor_slugs=newrelic.com" | jq
+```
 
-Resolve a vendor name to its canonical vendor_slug.
+### Category leaderboard filters
 
-GET /vendors/{vendor_slug}/profile
+`GET /categories/{category}/vendors` supports these query parameters:
 
-Get a vendor's Ramp Rate profile across all of its categories.
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `limit` | integer | `50` | Maximum number of vendors to return. Must be between 1 and 200. |
+| `fte_segment` | string | none | Filter by company size segment. |
+| `min_share_of_spend` | number | none | Filter out vendors below a spend share threshold. |
 
-GET /vendors/compare?vendor_slugs={slug1}&vendor_slugs={slug2}
+### Response notes
 
-Compare adoption metrics across 2-10 vendors.
+- Category summaries include adoption rate, YoY change, MoM change, growth rank, vendor count, and FTE segment breakdowns.
+- Vendor leaderboards include adoption rates, spend share, growth metrics, and competitive rankings.
+- `competitor_switch_rate` is the share of within-category switchers who chose that vendor. It is a switcher win rate, not a retention or churn metric.
 
-### GET /categories/{category}/vendors supports these query parameters
+## MCP
 
-- limit
-
-- integer
-
-50
-
-Maximum number of vendors to return. Must be between 1 and 200.
-
-- fte_segment
-
-- string
-
-- none
-
-Filter by company size segment.
-
-- min_share_of_spend
-
-- number
-
-Filter out vendors below a spend share threshold.
-
-Category summaries include adoption rate, YoY change, MoM change, growth rank, vendor count, and FTE segment breakdowns.
-
-Vendor leaderboards include adoption rates, spend share, growth metrics, and competitive rankings.
-
-competitor_switch_rate is the share of within-category switchers who chose that vendor. It is a switcher win rate, not a retention or churn metric.
-
-To access Ramp Rate through MCP, see the Ramp Data MCP guide.
+To access Ramp Rate through MCP, see the [Ramp Data MCP guide](/developer-api/v1/guides/ramp-data).

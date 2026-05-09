@@ -23,24 +23,14 @@ This repository is a Mintlify migration preview of Ramp’s public developer doc
 
 ## Information architecture
 
-`docs.json` uses two top-level tabs:
+`docs.json` → `navigation.groups` (single sidebar, no separate tabs config):
 
-- **Guides**
-  - Getting Started
-  - Developer Resources
-  - Applications
-  - Accounting
-  - Custom Records
-  - Virtual Cards
-  - Ramp Data
-  - Cards and Funds
-  - Bill Pay
-  - Agentic / MCP
-- **API Reference**
-  - Overview page
-  - Endpoints generated from Ramp OpenAPI URL
+- **Getting Started** (includes nested MCP group)
+- **Guides** (nested Accounting, Custom Records, Virtual Cards, Ramp Data; plus standalone guides)
+- **Developer Resources**
+- **REST API** — `openapi` points at Ramp’s OpenAPI JSON (generated endpoint reference)
 
-This structure mirrors Ramp’s major documentation areas while keeping Mintlify-native grouping and `root` pages for predictable sidebar behavior.
+Optional: `api-reference/introduction.mdx` exists for human-written API overview; ensure it is linked from navigation if you want it in the sidebar (currently not listed in `navigation.groups`).
 
 ## Mintlify components used
 

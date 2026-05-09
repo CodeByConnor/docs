@@ -6,7 +6,7 @@ sidebarTitle: "Getting Started"
 
 This guide assumes you are a Ramp customer with admin access to your dashboard. Need a test environment for development? Request access to our Sandbox.
 
-## Create your app and get credentials
+## 1. Create your app and get credentials
 
 First, you'll need to create a developer app to get your API credentials.
 
@@ -37,16 +37,23 @@ First, you'll need to create a developer app to get your API credentials.
 
 For more details on authorization, see the [Authorization Guide](/developer-api/v1/developer-resources/authorization).
 
-## Request an access token
+<video controls width="100%">
+  <source src="/videos/getting-started/get_client_credentials-CGNf66b2 (1).mp4" type="video/mp4" />
+</video>
+
+## 2. Get an access token
 
 With your credentials, request an access token. Ramp authenticates this `/developer/v1/token` request with HTTP Basic Auth: base64-encode `client_id:client_secret` and send it in the `Authorization` header. The token authenticates your API requests.
+
+For the client credentials grant, send `Content-Type: application/x-www-form-urlencoded` with `grant_type` set to `client_credentials` and `scope` set to `transactions:read` (matching the scope you enabled on your app).
 
 Replace `{environment-url}` with:
 
 - `https://demo-api.ramp.com` for Sandbox
 - `https://api.ramp.com` for Production
 
-### API URLs are different from the Ramp app URLs
+
+API URLs are different from the Ramp app URLs
 
 The API base URL is not the same as the URL for the Ramp customer app. Make sure you're pointing your API calls at the API host, not the frontend host.
 
@@ -55,14 +62,34 @@ The API base URL is not the same as the URL for the Ramp customer app. Make sure
 | Production | `https://api.ramp.com` | `https://app.ramp.com` |
 | Sandbox (demo) | `https://demo-api.ramp.com` | `https://demo.ramp.com` |
 
-Response:
+```bash title="Request an access token"
+curl -X POST '{environment-url}/developer/v1/token' \
+  -H "Authorization: Basic $(echo -n "$CLIENT_ID:$CLIENT_SECRET" | base64)" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "scope=transactions:read"
+```
+
+```json title="Response"
+{
+  "access_token": "<YOUR_ACCESS_TOKEN>",
+  "token_type": "Bearer",
+  "expires_in": 864000,
+  "scope": "transactions:read"
+}
+```
 
 <Note>
   Copy the `access_token` - you'll use it to make API calls. Tokens expire after 10 days.
 </Note>
 
-## Request transactions
+## 3. Make your first API call
 
 With your access token, you can now call the Ramp API. Let's retrieve your transactions using the `GET /transactions` endpoint.
 
 Add the header `Authorization: Bearer <YOUR_TOKEN_HERE>` and make a GET request to `{environment-url}/developer/v1/transactions`.
+
+```bash title="Request an access token"
+curl -X GET '{environment-url}/developer/v1/transactions' \
+  -H "Authorization: Bearer $ACCESS_TOKEN"
+```

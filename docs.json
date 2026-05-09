@@ -123,7 +123,16 @@
     }
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "mcp", "cursor", "vscode"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
@@ -134,84 +143,308 @@
   },
   "redirects": [
     {
-      "source": "/developer-api/v1/accounting",
-      "destination": "/developer-api/v1/guides/accounting"
+      "source": "/api-reference/introduction.md",
+      "destination": "/api-reference/introduction"
     },
     {
-      "source": "/developer-api/v1/accounting-erp-migration",
-      "destination": "/developer-api/v1/guides/accounting-erp-migration"
+      "source": "/api-reference/introduction.mdx",
+      "destination": "/api-reference/introduction"
     },
     {
-      "source": "/developer-api/v1/tax-codes",
-      "destination": "/developer-api/v1/guides/tax-codes"
+      "source": "/developer-api/v1/developer-resources/authorization.md",
+      "destination": "/developer-api/v1/developer-resources/authorization"
     },
     {
-      "source": "/developer-api/v1/vendor-credits",
-      "destination": "/developer-api/v1/guides/vendor-credits"
+      "source": "/developer-api/v1/developer-resources/authorization.mdx",
+      "destination": "/developer-api/v1/developer-resources/authorization"
     },
     {
-      "source": "/developer-api/v1/sync-button",
-      "destination": "/developer-api/v1/guides/sync-button"
+      "source": "/developer-api/v1/developer-resources/data-relationships.md",
+      "destination": "/developer-api/v1/developer-resources/data-relationships"
     },
     {
-      "source": "/developer-api/v1/custom-records",
-      "destination": "/developer-api/v1/guides/custom-records"
+      "source": "/developer-api/v1/developer-resources/data-relationships.mdx",
+      "destination": "/developer-api/v1/developer-resources/data-relationships"
     },
     {
-      "source": "/developer-api/v1/custom-records/customized-approvers",
-      "destination": "/developer-api/v1/guides/custom-records/customized-approvers"
+      "source": "/developer-api/v1/developer-resources/debugging.md",
+      "destination": "/developer-api/v1/developer-resources/debugging"
     },
     {
-      "source": "/developer-api/v1/virtual-cards",
-      "destination": "/developer-api/v1/guides/virtual-cards"
+      "source": "/developer-api/v1/developer-resources/debugging.mdx",
+      "destination": "/developer-api/v1/developer-resources/debugging"
     },
     {
-      "source": "/developer-api/v1/virtual-cards-embedded",
-      "destination": "/developer-api/v1/guides/virtual-cards-embedded"
+      "source": "/developer-api/v1/developer-resources/deferred-tasks.md",
+      "destination": "/developer-api/v1/developer-resources/deferred-tasks"
     },
     {
-      "source": "/developer-api/v1/ramp-data",
-      "destination": "/developer-api/v1/guides/ramp-data"
+      "source": "/developer-api/v1/developer-resources/deferred-tasks.mdx",
+      "destination": "/developer-api/v1/developer-resources/deferred-tasks"
     },
     {
-      "source": "/developer-api/v1/ramp-data/ramp-rate",
-      "destination": "/developer-api/v1/guides/ramp-data/ramp-rate"
+      "source": "/developer-api/v1/developer-resources/error-handling.md",
+      "destination": "/developer-api/v1/developer-resources/error-handling"
     },
     {
-      "source": "/developer-api/v1/ramp-data/ai-index",
-      "destination": "/developer-api/v1/guides/ramp-data/ai-index"
+      "source": "/developer-api/v1/developer-resources/error-handling.mdx",
+      "destination": "/developer-api/v1/developer-resources/error-handling"
     },
     {
-      "source": "/developer-api/v1/cards-and-funds",
-      "destination": "/developer-api/v1/guides/cards-and-funds"
+      "source": "/developer-api/v1/developer-resources/monetary-values.md",
+      "destination": "/developer-api/v1/developer-resources/monetary-values"
     },
     {
-      "source": "/developer-api/v1/bill-pay",
-      "destination": "/developer-api/v1/guides/bill-pay"
+      "source": "/developer-api/v1/developer-resources/monetary-values.mdx",
+      "destination": "/developer-api/v1/developer-resources/monetary-values"
     },
     {
-      "source": "/developer-api/v1/vendors-merchants-accounting-vendors",
-      "destination": "/developer-api/v1/guides/vendors-merchants-accounting-vendors"
+      "source": "/developer-api/v1/developer-resources/pagination.md",
+      "destination": "/developer-api/v1/developer-resources/pagination"
     },
     {
-      "source": "/developer-api/v1/user-lifecycle",
-      "destination": "/developer-api/v1/guides/user-lifecycle"
+      "source": "/developer-api/v1/developer-resources/pagination.mdx",
+      "destination": "/developer-api/v1/developer-resources/pagination"
     },
     {
-      "source": "/developer-api/v1/applications",
-      "destination": "/developer-api/v1/guides/applications"
+      "source": "/developer-api/v1/developer-resources/rate-limiting.md",
+      "destination": "/developer-api/v1/developer-resources/rate-limiting"
     },
     {
-      "source": "/quickstart",
-      "destination": "/developer-api/v1/getting-started/getting-started"
+      "source": "/developer-api/v1/developer-resources/rate-limiting.mdx",
+      "destination": "/developer-api/v1/developer-resources/rate-limiting"
     },
     {
-      "source": "/developer-api/v1/changelog",
+      "source": "/developer-api/v1/developer-resources/sandbox.md",
+      "destination": "/developer-api/v1/developer-resources/sandbox"
+    },
+    {
+      "source": "/developer-api/v1/developer-resources/sandbox.mdx",
+      "destination": "/developer-api/v1/developer-resources/sandbox"
+    },
+    {
+      "source": "/developer-api/v1/developer-resources/webhooks.md",
+      "destination": "/developer-api/v1/developer-resources/webhooks"
+    },
+    {
+      "source": "/developer-api/v1/developer-resources/webhooks.mdx",
+      "destination": "/developer-api/v1/developer-resources/webhooks"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/agent-cards.md",
+      "destination": "/developer-api/v1/getting-started/agent-cards"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/agent-cards.mdx",
+      "destination": "/developer-api/v1/getting-started/agent-cards"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/build-with-ramp.md",
+      "destination": "/developer-api/v1/getting-started/build-with-ramp"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/build-with-ramp.mdx",
+      "destination": "/developer-api/v1/getting-started/build-with-ramp"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/changelog.md",
       "destination": "/developer-api/v1/getting-started/changelog"
     },
     {
-      "source": "/development",
+      "source": "/developer-api/v1/getting-started/changelog.mdx",
+      "destination": "/developer-api/v1/getting-started/changelog"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/cli.md",
+      "destination": "/developer-api/v1/getting-started/cli"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/cli.mdx",
+      "destination": "/developer-api/v1/getting-started/cli"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/developer-mcp.md",
+      "destination": "/developer-api/v1/getting-started/developer-mcp"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/developer-mcp.mdx",
+      "destination": "/developer-api/v1/getting-started/developer-mcp"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/getting-started.md",
       "destination": "/developer-api/v1/getting-started/getting-started"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/getting-started.mdx",
+      "destination": "/developer-api/v1/getting-started/getting-started"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/introduction.md",
+      "destination": "/developer-api/v1/getting-started/introduction"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/introduction.mdx",
+      "destination": "/developer-api/v1/getting-started/introduction"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/mcp.md",
+      "destination": "/developer-api/v1/getting-started/mcp"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/mcp.mdx",
+      "destination": "/developer-api/v1/getting-started/mcp"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/ramp-mcp.md",
+      "destination": "/developer-api/v1/getting-started/ramp-mcp"
+    },
+    {
+      "source": "/developer-api/v1/getting-started/ramp-mcp.mdx",
+      "destination": "/developer-api/v1/getting-started/ramp-mcp"
+    },
+    {
+      "source": "/developer-api/v1/guides/accounting-erp-migration.md",
+      "destination": "/developer-api/v1/guides/accounting-erp-migration"
+    },
+    {
+      "source": "/developer-api/v1/guides/accounting-erp-migration.mdx",
+      "destination": "/developer-api/v1/guides/accounting-erp-migration"
+    },
+    {
+      "source": "/developer-api/v1/guides/accounting.md",
+      "destination": "/developer-api/v1/guides/accounting"
+    },
+    {
+      "source": "/developer-api/v1/guides/accounting.mdx",
+      "destination": "/developer-api/v1/guides/accounting"
+    },
+    {
+      "source": "/developer-api/v1/guides/applications.md",
+      "destination": "/developer-api/v1/guides/applications"
+    },
+    {
+      "source": "/developer-api/v1/guides/applications.mdx",
+      "destination": "/developer-api/v1/guides/applications"
+    },
+    {
+      "source": "/developer-api/v1/guides/bill-pay.md",
+      "destination": "/developer-api/v1/guides/bill-pay"
+    },
+    {
+      "source": "/developer-api/v1/guides/bill-pay.mdx",
+      "destination": "/developer-api/v1/guides/bill-pay"
+    },
+    {
+      "source": "/developer-api/v1/guides/cards-and-funds.md",
+      "destination": "/developer-api/v1/guides/cards-and-funds"
+    },
+    {
+      "source": "/developer-api/v1/guides/cards-and-funds.mdx",
+      "destination": "/developer-api/v1/guides/cards-and-funds"
+    },
+    {
+      "source": "/developer-api/v1/guides/custom-records/customized-approvers.md",
+      "destination": "/developer-api/v1/guides/custom-records/customized-approvers"
+    },
+    {
+      "source": "/developer-api/v1/guides/custom-records/customized-approvers.mdx",
+      "destination": "/developer-api/v1/guides/custom-records/customized-approvers"
+    },
+    {
+      "source": "/developer-api/v1/guides/custom-records.md",
+      "destination": "/developer-api/v1/guides/custom-records"
+    },
+    {
+      "source": "/developer-api/v1/guides/custom-records.mdx",
+      "destination": "/developer-api/v1/guides/custom-records"
+    },
+    {
+      "source": "/developer-api/v1/guides/ramp-data/ai-index.md",
+      "destination": "/developer-api/v1/guides/ramp-data/ai-index"
+    },
+    {
+      "source": "/developer-api/v1/guides/ramp-data/ai-index.mdx",
+      "destination": "/developer-api/v1/guides/ramp-data/ai-index"
+    },
+    {
+      "source": "/developer-api/v1/guides/ramp-data/ramp-rate.md",
+      "destination": "/developer-api/v1/guides/ramp-data/ramp-rate"
+    },
+    {
+      "source": "/developer-api/v1/guides/ramp-data/ramp-rate.mdx",
+      "destination": "/developer-api/v1/guides/ramp-data/ramp-rate"
+    },
+    {
+      "source": "/developer-api/v1/guides/ramp-data.md",
+      "destination": "/developer-api/v1/guides/ramp-data"
+    },
+    {
+      "source": "/developer-api/v1/guides/ramp-data.mdx",
+      "destination": "/developer-api/v1/guides/ramp-data"
+    },
+    {
+      "source": "/developer-api/v1/guides/sync-button.md",
+      "destination": "/developer-api/v1/guides/sync-button"
+    },
+    {
+      "source": "/developer-api/v1/guides/sync-button.mdx",
+      "destination": "/developer-api/v1/guides/sync-button"
+    },
+    {
+      "source": "/developer-api/v1/guides/tax-codes.md",
+      "destination": "/developer-api/v1/guides/tax-codes"
+    },
+    {
+      "source": "/developer-api/v1/guides/tax-codes.mdx",
+      "destination": "/developer-api/v1/guides/tax-codes"
+    },
+    {
+      "source": "/developer-api/v1/guides/user-lifecycle.md",
+      "destination": "/developer-api/v1/guides/user-lifecycle"
+    },
+    {
+      "source": "/developer-api/v1/guides/user-lifecycle.mdx",
+      "destination": "/developer-api/v1/guides/user-lifecycle"
+    },
+    {
+      "source": "/developer-api/v1/guides/vendor-credits.md",
+      "destination": "/developer-api/v1/guides/vendor-credits"
+    },
+    {
+      "source": "/developer-api/v1/guides/vendor-credits.mdx",
+      "destination": "/developer-api/v1/guides/vendor-credits"
+    },
+    {
+      "source": "/developer-api/v1/guides/vendors-merchants-accounting-vendors.md",
+      "destination": "/developer-api/v1/guides/vendors-merchants-accounting-vendors"
+    },
+    {
+      "source": "/developer-api/v1/guides/vendors-merchants-accounting-vendors.mdx",
+      "destination": "/developer-api/v1/guides/vendors-merchants-accounting-vendors"
+    },
+    {
+      "source": "/developer-api/v1/guides/virtual-cards-embedded.md",
+      "destination": "/developer-api/v1/guides/virtual-cards-embedded"
+    },
+    {
+      "source": "/developer-api/v1/guides/virtual-cards-embedded.mdx",
+      "destination": "/developer-api/v1/guides/virtual-cards-embedded"
+    },
+    {
+      "source": "/developer-api/v1/guides/virtual-cards.md",
+      "destination": "/developer-api/v1/guides/virtual-cards"
+    },
+    {
+      "source": "/developer-api/v1/guides/virtual-cards.mdx",
+      "destination": "/developer-api/v1/guides/virtual-cards"
+    },
+    {
+      "source": "/index.md",
+      "destination": "/"
+    },
+    {
+      "source": "/index.mdx",
+      "destination": "/"
     }
   ]
 }

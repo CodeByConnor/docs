@@ -4,48 +4,143 @@ description: "This guide explains how integrators can set up a new API-based acc
 sidebarTitle: "ERP Migration"
 ---
 
-## Requirements
+## Overview
 
-- Your app must have scopes accounting:read and accounting:write
+This guide explains how integrators can set up a new API-based accounting connection to use the ERP migration tool.
 
-- Make a POST to create a new, inactive accounting connection
+## Setup Guide
 
-Choose a descriptive customer-facing name for remote_provider_name and set is_active to false:
+**Requirements**
 
-- Example response
+- Your app must have scopes `accounting:read` and `accounting:write`
 
-## Notes
+## Step 1. Create an inactive Accounting API connection
 
-- Status should be UNLINKED
+- Make a `POST` to create a new, inactive accounting connection
+- Choose a descriptive customer-facing name for `remote_provider_name` and set `is_active` to `false`:
 
-- remote_provider_name appears in the customer UI when they switch providers
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/connection" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_active": false,
+    "remote_provider_name": "Test ERP"
+  }'
+```
 
-- Save the returned id for subsequent calls
+**Example response**
 
-For write operations to set up the custom fields and chart of accounts, include the id from the previous request for the accounting_connection_id in the request body:
+```json
+{
+  "id": "36a6e497-91eb-4167-ad5c-23b84f2ca84c",
+  "last_linked_at": null,
+  "is_active": false,
+  "connection_type": "API",
+  "remote_provider_name": "Test ERP",
+  "status": "UNLINKED",
+  "created_at": "2025-12-08T01:27:04+00:00"
+}
+```
 
-- 2a. Upload GL accounts
+**Notes**
 
-- 2b. Create a custom accounting field
+- Status should be `UNLINKED`
+- `remote_provider_name` appears in the customer UI when they switch providers
+- Save the returned `id` for subsequent calls
 
-- 2c. Add options for a custom field
+## Step 2. Preload accounting data into the new connection
 
-- 2d. Upload vendors
+For write operations to set up the custom fields and chart of accounts, include the `id` from the previous request for the `accounting_connection_id` in the request body.
+
+2a. Upload GL accounts
+
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/accounts" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accounting_connection_id": "36a6e497-91eb-4167-ad5c-23b84f2ca84c",
+    "gl_accounts": [
+      {"classification": "EXPENSE", "code": "6410", "id": "514", "name": "Employees:Salaries & Wages"},
+      {"classification": "EXPENSE", "id": "418", "name": "Office/Admin:Phone & Internet"},
+      {"classification": "REVENUE", "id": "425", "name": "Sales"}
+    ]
+  }'
+```
+
+2b. Create a custom accounting field
+
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/fields" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accounting_connection_id": "36a6e497-91eb-4167-ad5c-23b84f2ca84c",
+    "display_name": "Dept",
+    "id": "Department",
+    "input_type": "SINGLE_CHOICE",
+    "is_splittable": true,
+    "name": "Department"
+  }'
+```
+
+2c. Add options for a custom field
+
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/field-options" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accounting_connection_id": "36a6e497-91eb-4167-ad5c-23b84f2ca84c",
+    "field_id": "2e191db1-570b-4704-95e9-a6646bf1e289",
+    "options": [
+      {"id": "418", "value": "Engineering & Design"},
+      {"id": "514", "value": "Sales & Marketing"}
+    ]
+  }'
+```
+
+2d. Upload vendors
+
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/vendors" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "accounting_connection_id": "36a6e497-91eb-4167-ad5c-23b84f2ca84c",
+    "vendors": [
+      {"id": "V-5500-0130", "name": "AirTable"},
+      {"id": "V-5500-0135", "name": "Slack Technologies, LLC"},
+      {"id": "V-5500-0142", "name": "Microsoft"}
+    ]
+  }'
+```
+
+## Step 3. Mark the connection ready to migrate
 
 - After setting up the COA and custom fields
-
-Call POST /developer/v1/accounting/connection/&lt;accounting_connection_id>/ready-to-migrate to mark the inactive connection as ready.
-
+- Call `POST /developer/v1/accounting/connection/<accounting_connection_id>/ready-to-migrate` to mark the inactive connection as ready
 - This makes the new provider selectable in the customer UI
 
-## Result
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/connection/36a6e497-91eb-4167-ad5c-23b84f2ca84c/ready-to-migrate" \
+  -H "Authorization: Bearer <token>"
+```
+
+**Result**
 
 - The inactive accounting connection is marked as ready
-
 - The customer can now switch to this provider in the UI
 
-### Navigate to Accounting → Settings → Danger Zone → Switch Providers
+## Step 4. Customer completes the migration in the UI
 
-Select the inactive provider by the title you chose for remote_provider_name:
+Navigate to Accounting → Settings → Danger Zone → Switch Providers.
 
-- Follow the on-screen steps to map fields from the old connection to the new one and complete migration
+<img src="/images/Guides/ERP-1.png" width="350" />
+
+Select the inactive provider by the title you chose for `remote_provider_name`.
+
+<img src="/images/Guides/ERP-2.png" width="350" />
+
+Follow the on-screen steps to map fields from the old connection to the new one and complete migration.

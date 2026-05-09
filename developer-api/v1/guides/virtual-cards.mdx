@@ -5,77 +5,208 @@ description: "Due to PCI compliance requirements, 16-digit card numbers and CVVs
 
 Create and manage virtual cards with customizable spend and fraud controls, so you can safely embed payments into your apps, agents, or backend workflows.
 
-For delivering virtual cards to vendors without PCI compliance requirements, see the card payment options in our Bill Pay guide.
+For delivering virtual cards to vendors without PCI compliance requirements, see the card payment options in our [Bill Pay guide](/developer-api/v1/guides/bill-pay).
 
-For managing physical cards and funds, see our Cards and Funds guide.
+For managing physical cards and funds, see our [Cards and Funds guide](/developer-api/v1/guides/cards-and-funds).
 
-Travel Platforms - Generate single-use virtual cards for each booking to streamline reconciliation and simplify refund workflows
+## Example Use Cases
 
-B2B Marketplaces - Provide instant supplier payments via virtual cards while earning interchange on each transaction
-
-- Procurement & AP Platforms - Replace ACH payments with card
-
-AI Agents - Enable AI agents to make autonomous payments with controlled spending limits and merchant restrictions
+- **Travel Platforms** - Generate single-use virtual cards for each booking to streamline reconciliation and simplify refund workflows
+- **B2B Marketplaces** - Provide instant supplier payments via virtual cards while earning interchange on each transaction
+- **Procurement & AP Platforms** - Replace ACH payments with card
+- **AI Agents** - Enable AI agents to make autonomous payments with controlled spending limits and merchant restrictions
 
 ## How It Works
 
-A virtual card is generated instantly via Ramp’s API, optionally configured with:
+### 1. Card Issuance
 
-- Merchant restrictions – limiting transactions to specific providers (such as airlines or hotels)
+A virtual card is generated instantly via Ramp's API, optionally configured with:
 
-- Spending caps – ensuring charges do not exceed predefined thresholds
+- **Merchant restrictions** - limiting transactions to specific providers (such as airlines or hotels)
+- **Spending caps** - ensuring charges do not exceed predefined thresholds
+- **Expiration dates** - to auto-expire unused cards for security and refund alignment
 
-- Expiration dates – to auto-expire unused cards for security and refund alignment
+### 2. Payment Execution
 
-The generated card details (PAN, CVV, expiration) are securely delivered via Ramp’s Vault API. You pass these details to your vendor, travel partner, or supplier to process payment.
+The generated card details (PAN, CVV, expiration) are securely delivered via Ramp's Vault API. You pass these details to your vendor, travel partner, or supplier to process payment.
+
+### 3. Reconciliation
 
 After the card is charged, Ramp notifies you via webhook and exposes detailed transaction metadata via API.
 
-- Card ID → Transaction mapping makes it easy to automate reconciliation
+- **Card ID -> Transaction mapping** makes it easy to automate reconciliation
+- **Supports adjustments & refunds** even after the card is locked or expired
+- **Webhooks are supported** for notifications when a card is used, declined, or refunded
 
-- Supports adjustments & refunds even after the card is locked or expired
-
-- Webhooks are supported for notifications when a card is used, declined, or refunded
+## Sample Code
 
 Use the following python snippets to instantiate an API client, make your first limit (virtual card), and pull its PAN/CVV. You can issue a virtual card and retrieve sensitive card details in one single synchronous API request.
 
-You must have the cards:read_vault limits:write (and optionally, users:read) scopes enabled to run the sample code.
+You must have the `cards:read_vault` `limits:write` (and optionally, `users:read`) scopes enabled to run the sample code.
 
-You’ll need to update constants like credentials and user information throughout and ensure your Python environment includes the following packages:
+You'll need to update constants like credentials and user information throughout and ensure your Python environment includes the following packages:
 
-- python-dotenv
+- `python-dotenv`
+- `requests`
 
-- requests
+Copy your Client ID and Client Secret into a file named `.env`. The format should be:
 
-Copy your Client ID and Client Secret into a file named .env. The format should be:
+```python title="Set up your .env file"
+RAMP_CLIENT_ID=foo
+RAMP_CLIENT_SECRET=bar
+```
 
-### In a separate python script
+In a separate python script:
 
-At this point, CLIENT is an authenticated Ramp Developer API client.
+```python title="Load configuration and secrets"
+from dotenv import load_dotenv
+
+RAMP_API_HOST = "demo-api.ramp.com"
+RAMP_VAULT_API_HOST = "demo-vault-api.ramp.com"
+
+load_dotenv()
+```
+
+```python title="Create an API client"
+import base64
+import logging
+import os
+
+import requests
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger()
+
+
+class RampApiClient:
+    def __init__(self, client_id: str, client_secret: str):
+        self.base_url = f"https://{RAMP_API_HOST}/"
+        self.base_vault_url = f"https://{RAMP_VAULT_API_HOST}/"
+        self.auth_secret = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+        self._load_access_token()
+        self.session = requests.session()
+        self.session.headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {self.access_token}",
+        }
+
+    def _load_access_token(self):
+        response = requests.post(
+            f"{self.base_url}developer/v1/token",
+            headers={
+                "Accept": "application/json",
+                "Authorization": f"Basic {self.auth_secret}",
+                "Content-Type": "application/x-www-form-urlencoded",
+            },
+            data={
+                "grant_type": "client_credentials",
+                "scope": "cards:read_vault limits:write users:read",
+            },
+        )
+        response.raise_for_status()
+        self.access_token = response.json()["access_token"]
+
+    def request(self, method: str, path: str, **kwargs):
+        assert path and path[0] == "/" and method.lower() in ["get", "post", "put", "delete"]
+        base_url = self.base_url if not kwargs.pop("use_vault", False) else self.base_vault_url
+        response = self.session.request(method, base_url + path, **kwargs)
+        try:
+            response.raise_for_status()
+            logger.info(f"[response.status_code] {method} {base_url}{path} {response.request.body}")
+        except requests.exceptions.HTTPError as err:
+            logger.info(f"[response.status_code] {method} {base_url}{path} {response.request.body} {response.text} {response.headers}")
+            raise err
+        return response.json() if response.text else None
+
+
+CLIENT = RampApiClient(client_id=os.environ["RAMP_CLIENT_ID"], client_secret=os.environ["RAMP_CLIENT_SECRET"])
+
+# ping-test to confirm we're live
+assert CLIENT.request("get", "developer/v1/limits")
+```
+
+At this point, `CLIENT` is an authenticated Ramp Developer API client.
 
 To create cards we'll use a single synchronous API request to create a limit (with an associated virtual card) and retrieve card number information.
 
-- Terminating Virtual Cards
+```python title="Identify target user"
+from urllib import parse
+import json
+
+# Fill in TARGET_USER_EMAIL with the user who the cards should belong to
+TARGET_USER_EMAIL = "rampy@ramp.com"
+TARGET_USER_ID = CLIENT.request(
+    "get",
+    f"developer/v1/users?email={parse.quote(TARGET_USER_EMAIL)}"
+)["data"][0]["id"]
+```
+
+```python title="Make a POST request to create a card and retrieve the sensitive card details"
+payload = {
+    "user_id": TARGET_USER_ID,
+    "display_name": "TRAVEL HOTEL BOOKING PURCHASE",
+    "spending_restrictions": {
+        "limit": {
+            "amount": 500000,
+            "currency_code": "USD",
+        },
+        "allowed_categories": [18, 20],
+        "interval": "TOTAL",
+    },
+}
+
+response = CLIENT.request("post", "developer/v1/vault/cards", json=payload, use_vault=True)
+print(json.dumps(response, indent=2))
+```
+
+## Terminating Virtual Cards
 
 When you need to permanently terminate a virtual card created via the Vault API, use the limits termination endpoint, not the cards termination endpoint.
 
-Virtual cards created through POST /vault/cards return both a spend_limit_id and a card.id. To terminate these cards:
+### Important: Use the Correct Endpoint
 
-- ✅ Correct: Use POST /developer/v1/limits/{spend_limit_id}/deferred/termination
-- ❌ Incorrect: Don't use POST /developer/v1/cards/{card_id}/deferred/termination
+Virtual cards created through `POST /vault/cards` return both a `spend_limit_id` and a `card.id`. To terminate these cards:
 
-The vault API creates a spend limit with an associated virtual card. Since the card is tied to the limit, you must terminate the limit using its spend_limit_id. Terminating the limit will automatically terminate the virtual card that's associated with that limit.
+- ✅ Correct: Use `POST /developer/v1/limits/{spend_limit_id}/deferred/termination`
+- ❌ Incorrect: Don't use `POST /developer/v1/cards/{card_id}/deferred/termination`
 
-Note that termination is irreversible and processed asynchronously. You can check the task status using the deferred tasks endpoint.
+The vault API creates a spend limit with an associated virtual card. Since the card is tied to the limit, you must terminate the limit using its `spend_limit_id`. Terminating the limit will automatically terminate the virtual card that's associated with that limit.
+
+### Example Termination Request
+
+```python title="Terminate a virtual card using the spend_limit_id"
+# Use the spend_limit_id from your card creation response
+spend_limit_id = "d8135cfe-0396-4b2d-b2cf-ad09fb04731"
+
+# Create termination task
+response = CLIENT.request(
+    "post",
+    f"developer/v1/limits/{spend_limit_id}/deferred/termination",
+    json={},
+)
+
+# Response contains task_id for checking termination status
+task_id = response["task_id"]
+print(f"Termination task created: {task_id}")
+```
+
+Note that termination is **irreversible** and processed asynchronously. You can check the task status using the deferred tasks endpoint.
 
 ## FAQ
 
-## Need help
+<Warning>
+  **Need help?**  
+  [Submit a Developer API support ticket](https://support.ramp.com) and our team will follow up.
+</Warning>
 
-Submit a Developer API support ticket and our team will follow up.
+### Can refunds be processed on locked cards?
 
 Yes, refunds can be applied even after the card is locked, ensuring reconciliation remains seamless.
 
+### What support is available during implementation?
+
 Ramp offers dedicated support, including access to a sandbox environment, technical documentation, and a partnerships team to guide you through implementation.
 
-Subscribe to the transactions.cleared webhook event. This event fires not only when a transaction settles, but also when refunds or reversals are processed on the card. When the webhook fires, fetch the transaction details via the API to check the amount field—a negative amount indicates a refund or reversal. See our Webhooks Guide for setup instructions.
+### How do I track refunds or reversals on virtual cards?
+
+Subscribe to the `transactions.cleared` webhook event. This event fires not only when a transaction settles, but also when refunds or reversals are processed on the card. When the webhook fires, fetch the transaction details via the API to check the `amount` field - a negative amount indicates a refund or reversal. See our [Webhooks Guide](/developer-api/v1/developer-resources/webhooks) for setup instructions.

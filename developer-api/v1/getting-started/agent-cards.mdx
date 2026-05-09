@@ -4,26 +4,76 @@ description: "Agent Cards require approved alpha access. Apply for access here. 
 sidebarTitle: "Agent Cards"
 ---
 
-Agent Cards require approved alpha access. Apply for access [here](https://agents.ramp.com/cards). Limits, supported flows, and APIs may change as we iterate.
+<Info>
+  Agent Cards require approved alpha access. Apply for access [here](https://agents.ramp.com/cards). Limits, supported flows, and APIs may change as we iterate.
+</Info>
+
+## What are Agent Cards?
 
 Agent Cards let your AI agents make real purchases using Ramp. When an agent needs to buy something, it generates a unique payment credential through Visa Intelligent Commerce (VIC) - scoped to the specific merchant and capped at the requested transaction amount. Every transaction shows up in your Ramp audit log attributed to the agent on behalf of the authorized user.
 
 Agent Cards are accessible to anyone in your org with access to Ramp funds. The Ramp CLI respects existing permissions, so users can only issue cards against funds they're scoped to.
 
+## Example Use Cases
+
+Agent Cards can support workflows where an AI agent needs to make a purchase on behalf of an authorized user.
+
+Examples include:
+
+- Buying software or services
+- Making approved business purchases
+- Booking travel
+- Completing browser-based checkout flows
+- Running agentic purchasing workflows with scoped payment credentials
+
 ## Getting Started
+
+### Prerequisites
 
 - A Ramp account with access to at least one active fund
 - The Ramp CLI installed and authenticated
 
+### Install the CLI
+
+Install with the one-liner:
+
+```bash title="Install with the one-liner"
+curl -fsSL https://agents.ramp.com/install.sh | sh
+```
+
 Or clone the repo directly:
+
+```bash title="Clone the CLI repo"
+git clone https://github.com/ramp-public/ramp-cli.git
+```
+
+### Authenticate
 
 This opens a browser-based OAuth flow. For more details, see the [CLI guide](/developer-api/v1/getting-started/cli).
 
+```bash title="Log in to Ramp"
+ramp auth login
+```
+
+### Enable Agent Cards
+
 After authenticating, enroll once to enable Agent Cards for your Ramp account:
+
+```bash title="Enable Agent Cards"
+ramp funds enroll
+```
+
+### Install the agentic-purchase skill
 
 Give your agent the skill URL so it knows how to use Agent Cards:
 
+```text title="Agentic purchase skill URL"
+https://github.com/ramp-public/ramp-cli/blob/main/src/ramp_cli/skills/agentic-purchase/SKILL.md
+```
+
 The repo includes starter code for browser-based purchasing, but Agent Cards work with any agent framework or workflow. Use them however fits your setup.
+
+## Your First Agent Transaction
 
 Follow the walkthrough in the CLI repo's `/skills` folder to make your first agent purchase. The flow works like this:
 
@@ -32,13 +82,23 @@ Follow the walkthrough in the CLI repo's `/skills` folder to make your first age
 3. The credential is used to complete the transaction.
 4. The purchase appears in your Ramp audit log, attributed to the agent.
 
-## Session expiry
+## Authorization & Sessions
 
-Read-only sessions expire 1 week after last usage. Read-write sessions expire 24 hours after last usage.
+<Note>
+  Read-only sessions expire 1 week after last usage. Read-write sessions expire 24 hours after last usage.
+</Note>
 
-To enable the CLI on a remote machine (for example, a cloud-hosted agent):
+To enable the CLI on a remote machine, for example, a cloud-hosted agent:
 
-As long as the agent makes at least one request within the refresh window (24h for read-write, 1w for read-only), the session will not expire.
+```bash title="Copy credentials to a remote machine"
+# 1. Authenticate locally
+ramp auth login
+
+# 2. Copy the config to the remote machine
+scp ~/.config/ramp/config.toml remote-host:~/.config/ramp/config.toml
+```
+
+As long as the agent makes at least one request within the refresh window, 24h for read-write and 1w for read-only, the session will not expire.
 
 ## Current Limitations
 
@@ -46,9 +106,19 @@ As long as the agent makes at least one request within the refresh window (24h f
   We're working with Visa to reduce or remove these limitations as soon as possible. If any of these block your workflow, reach out and Ramp will try to unblock you.
 </Note>
 
-- `$5K/day` issuance limit per business. If this blocks your use case, reach out and Ramp can consider raising this limit on a case-by-case basis.
-- Visa is actively working to support `3DS` via VIC. 3DS is commonly used in non-U.S. markets to reduce fraud and protect merchants from liability in the event of fraud, and is primarily required for online transactions within the European Economic Area (EEA) & UK, India, Japan, Australia, and some other countries.
-- Visa is actively working to support `MIT/CoF` transactions via VIC, which enables merchants to charge your card asynchronously. This payment processing flow is common for subscriptions (for example SaaS, memberships), booking travel, recurring billing (for example utilities, insurance), and metered billing (for example cloud services, token-based AI spend).
+### Spend limit
+
+`$5K/day` issuance limit per business. If this blocks your use case, reach out and Ramp can consider raising this limit on a case-by-case basis.
+
+### 3D Secure (3DS) support
+
+Visa is actively working to support `3DS` via VIC. 3DS is commonly used in non-U.S. markets to reduce fraud and protect merchants from liability in the event of fraud, and is primarily required for online transactions within the European Economic Area (EEA) & UK, India, Japan, Australia, and some other countries.
+
+### Merchant-initiated transaction (MIT) / Card on File (CoF) support
+
+Visa is actively working to support `MIT/CoF` transactions via VIC, which enables merchants to charge your card asynchronously. This payment processing flow is common for subscriptions, for example SaaS and memberships, booking travel, recurring billing, for example utilities and insurance, and metered billing, for example cloud services and token-based AI spend.
+
+## Reporting Issues
 
 We're actively tuning the experience during alpha. Please report:
 
@@ -59,18 +129,26 @@ We're actively tuning the experience during alpha. Please report:
 
 Use the `ramp feedback` command in the CLI, or post directly in your support channel.
 
+```bash title="Submit feedback"
+ramp feedback
+```
+
+## MCC Restrictions
+
 Visa restricts payments involving the following Merchant Category Codes (MCC). If you have a use case involving one of these categories, let us know and we'll see what we can do.
 
-- `4816`: Computer Network / Information Services
-- `5122`: Drugs, Drug Proprietors and Druggists Sundries
-- `5816`: Digital Goods: Games
-- `5912`: Drug Stores and Pharmacies
-- `5966`: Direct Marketing - Outbound Telemarketing Merchant
-- `5967`: Direct Marketing - Inbound Telemarketing Merchants
-- `5968`: Direct Marketing - Continuity / Subscription Merchant
-- `5993`: Cigar Stores and Stands
-- `6012`: Member Financial Institution - Merchandise and Services
-- `6051`: Quasi Cash - Merchant
-- `6211`: Securities - Brokers and Dealers
-- `7273`: Dating Services
-- `7995`: Betting, including Lottery Tickets, Casino Gaming Chips, Off-Track Betting, Wagers at Race Tracks
+| MCC | Category |
+| --- | --- |
+| `4816` | Computer Network / Information Services |
+| `5122` | Drugs, Drug Proprietors and Druggists Sundries |
+| `5816` | Digital Goods: Games |
+| `5912` | Drug Stores and Pharmacies |
+| `5966` | Direct Marketing - Outbound Telemarketing Merchant |
+| `5967` | Direct Marketing - Inbound Telemarketing Merchants |
+| `5968` | Direct Marketing - Continuity / Subscription Merchant |
+| `5993` | Cigar Stores and Stands |
+| `6012` | Member Financial Institution - Merchandise and Services |
+| `6051` | Quasi Cash - Merchant |
+| `6211` | Securities - Brokers and Dealers |
+| `7273` | Dating Services |
+| `7995` | Betting, including Lottery Tickets, Casino Gaming Chips, Off-Track Betting, Wagers at Race Tracks |

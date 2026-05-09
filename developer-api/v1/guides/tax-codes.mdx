@@ -3,34 +3,55 @@ title: "Tax Codes"
 description: "Tax code endpoints are currently in Beta. During the beta, endpoints may be subject to breaking changes, which will be announced via the Changelog."
 ---
 
-Tax codes allow you to associate tax rates with transactions in Ramp, keeping your ERP and Ramp in sync on tax classification. Setting up tax codes involves three steps, which must be performed in this order:
+Tax codes allow you to associate tax rates with transactions in Ramp, keeping your ERP and Ramp in sync on tax classification.
+
+## Prerequisites
 
 - An active accounting connection
 
 - GL accounts uploaded (required for associating tax rates with GL accounts)
 
-- accounting:read and accounting:write scopes
+- `accounting:read` and `accounting:write` scopes
 
-Tax rates define the individual rate values (e.g., GST at 5%, PST at 7%) that will be available as options within a tax code. Upload them first using POST /developer/v1/accounting/tax/rates:
+Setting up tax codes involves three steps, which must be performed in this order:
 
-- id
+## Step 1. Upload tax rates
 
-- Your ERP's external identifier for this tax rate
+Tax rates define the individual rate values (e.g., GST at 5%, PST at 7%) that will be available as options within a tax code. Upload them first using `POST /developer/v1/accounting/tax/rates`:
 
-- name
+```bash
+curl -X POST \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer $RAMP_API_TOKEN" \
+  -d '{
+  "tax_rates": [
+    {
+      "id": "tax_rate_gst_5",
+      "name": "GST",
+      "rate": "0.05",
+      "accounting_gl_account_id": "46910cc3-ab41-4b80-b4a7-94dab9f1b795"
+    },
+    {
+      "id": "tax_rate_pst_7",
+      "name": "PST",
+      "rate": "0.07",
+      "accounting_gl_account_id": "7eb0ae7e-2d2f-486c-a890-cf71ca4bc13a"
+    }
+  ]
+}' \
+'https://api.ramp.com/developer/v1/accounting/tax/rates'
+```
 
-- Display name of the tax rate
-
-- rate
-
-- Decimal value (e.g., "0.05" for 5%)
-
-- accounting_gl_account_id
-
-- The ramp_id of the GL account to associate with this tax rate. Required for API-based connections.
-- Use GET /developer/v1/accounting/accounts to find the ramp_id.
+| Field | Description |
+| --- | --- |
+| `id` | Your ERP's external identifier for this tax rate |
+| `name` | Display name of the tax rate |
+| `rate` | Decimal value (e.g., `"0.05"` for 5%) |
+| `accounting_gl_account_id` | The `ramp_id` of the GL account to associate with this tax rate. Required for API-based connections. Use `GET /developer/v1/accounting/accounts` to find the `ramp_id`. |
 
 You can upload up to 500 tax rates per request. Batches are all-or-nothing: if any rate fails validation, the entire batch is rejected.
+
+## Step 2. Create the tax code field
 
 - One tax code field per connection
 
@@ -38,34 +59,125 @@ You only need to create the tax code field once. If the tax code field already e
 
 The tax code field is the accounting field that holds your tax code options. There can only be one active tax code field per accounting connection, so you only need to perform this step once.
 
-### Use POST /developer/v1/accounting/tax/code to create it
+Use `POST /developer/v1/accounting/tax/code` to create it:
 
-- Name of the tax code field in your ERP system
+```bash
+curl -X POST \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer $RAMP_API_TOKEN" \
+  -d '{
+  "name": "Tax Code",
+  "display_name": "Tax Code"
+}' \
+'https://api.ramp.com/developer/v1/accounting/tax/code'
+```
 
-- display_name
+| Field | Description |
+| --- | --- |
+| `name` | Name of the tax code field in your ERP system |
+| `display_name` | The label shown to users in Ramp (optional) |
 
-- The label shown to users in Ramp (optional)
+## Step 3. Upload tax code options
 
 Tax code options are the selectable values within your tax code field. Each option can reference one or more tax rates from Step 1.
 
-Use POST /developer/v1/accounting/tax/code/options to create them.
+Use `POST /developer/v1/accounting/tax/code/options` to create them.
 
-- options[].id
+```bash
+curl -X POST \
+  -H "Accept: application/json" \
+  -H "Authorization: Bearer $RAMP_API_TOKEN" \
+  -d '{
+  "options": [
+    {
+      "id": "tax_exempt",
+      "name": "Tax Exempt"
+    },
+    {
+      "id": "gst_only",
+      "name": "GST Only",
+      "tax_rate_ids": ["tax_rate_gst_5"]
+    },
+    {
+      "id": "gst_plus_pst",
+      "name": "GST + PST",
+      "tax_rate_ids": ["tax_rate_gst_5", "tax_rate_pst_7"]
+    }
+  ]
+}' \
+'https://api.ramp.com/developer/v1/accounting/tax/code/options'
+```
 
-- Your ERP's external identifier for this option
-
-- options[].name
-
-- Display name of the option
-
-- options[].tax_rate_ids
-
-- List of tax rate remote IDs (from Step 1) to associate with this option
+| Field | Description |
+| --- | --- |
+| `options[].id` | Your ERP's external identifier for this option |
+| `options[].name` | Display name of the option |
+| `options[].tax_rate_ids` | List of tax rate remote IDs (from Step 1) to associate with this option |
 
 You can upload up to 500 options per request.
 
+## Using tax codes
+
 Once tax code options are uploaded, a Tax Code field will appear to end users as a selectable coding field on transactions in Ramp.
 
-After a user selects a tax code, it will appear in the accounting_field_selections array for line items when fetching transactions. For example, when fetching a transaction that was coded with the tax codes uploaded above:
+<img src="/images/Guides/Tax-code.png" width="450" />
 
-The tax code selection has "type": "TAX_CODE" in both the field entry and its category_info, making it easy to identify programmatically.
+After a user selects a tax code, it will appear in the `accounting_field_selections` array for line items when fetching transactions. For example, when fetching a transaction that was coded with the tax codes uploaded above:
+
+```json
+{
+  "line_items": [
+    {
+      "amount": {
+        "amount": 114840,
+        "minor_unit_conversion_rate": 100,
+        "currency_code": "USD"
+      },
+      "accounting_field_selections": [
+        {
+          "external_id": "514",
+          "source": {
+            "type": "MANUAL"
+          },
+          "id": "8337f457-e3f6-4dec-b83f-b0edd76d4ee6",
+          "provider_name": "Accounting",
+          "name": "Employees:Salaries & Wages",
+          "external_code": "6410",
+          "category_info": {
+            "external_id": "Category",
+            "type": "GL_ACCOUNT",
+            "name": "Category",
+            "id": "8a22306c-cb3d-48b3-b575-ab040b48b3d8"
+          },
+          "type": "GL_ACCOUNT"
+        },
+        {
+          "external_id": "gst_plus_pst",
+          "source": {
+            "type": "MANUAL"
+          },
+          "id": "5346d348-99d4-4f44-ac36-f46f7535a27f",
+          "provider_name": "Accounting",
+          "name": "GST + PST",
+          "external_code": null,
+          "category_info": {
+            "external_id": "TaxCode",
+            "type": "TAX_CODE",
+            "name": "Tax Code",
+            "id": "aed0a501-5e8e-4c30-a8fe-a9d7e3c6c64e"
+          },
+          "type": "TAX_CODE"
+        }
+      ],
+      "converted_amount": {
+        "amount": 114840,
+        "minor_unit_conversion_rate": 100,
+        "currency_code": "USD"
+      },
+      "memo": null
+    }
+  ]
+}
+```
+
+The tax code selection has `"type": "TAX_CODE"` in both the field entry and its `category_info`, making it easy to identify programmatically.

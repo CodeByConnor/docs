@@ -4,48 +4,81 @@ description: "In the Ramp API, monetary values are represented by the currency_c
 ---
 
 
-## Canonical representation (preferred)
+## Canonical representation (Preferred)
 
-Ramp's preferred method for representing monetary values is canonical representation, which uses the CurrencyAmount type to group amount and currency_code together. The amount is represented as an integer in the smallest denomination to avoid precision loss.
+Ramp's preferred method for representing monetary values is **canonical representation**, which uses the `CurrencyAmount` type to group `amount` and `currency_code` together. The `amount` is represented as an **integer** in the **smallest denomination** of the currency (for example, cents for USD) to avoid precision loss from floating-point numbers.
 
 For example:
 
-- **USD**: $40 is represented as 4000 (since 1 USD = 100 cents)
+- **USD:** $40 is represented as `4000` (since 1 USD = 100 cents)
+- **JPY:** ¥5000 is represented as `5000` (since 1 JPY = 1 yen)
 
-- **JPY**: ¥5000 is represented as 5000 (since 1 JPY = 1 yen)
+```json
+{
+  "amount": 4000,
+  "currency_code": "USD"
+}
+```
 
-To calculate the correct amount for different currencies, the canonical representation multiplies the amount by 10 raised to the power of D, where D is the number of decimal places for the currency. You can find the D value for any currency in the ISO 4217 Wikipedia page.
+### Currency Precision
 
-- **USD, EUR, GBP, etc.**: D = 2 (i.e., multiply the amount by 100 for cents)
+To calculate the correct amount for different currencies, the canonical representation multiplies the raw amount by 10 raised to the power of **D**, where **D** is the number of decimal places for the currency. You can find the D value for any currency on [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) (see the minor unit / exponent for each currency).
 
-- **JPY**: D = 0 (i.e., no decimal places)
+- **USD, EUR, GBP, etc.:** D = 2 (multiply the amount by 100 for cents)
+- **JPY:** D = 0 (no decimal places)
 
-## Formula
+**Formula:** `Canonical amount = Raw amount × 10^D`
 
-For example, for USD:
+For example, for USD: **$40** → `40 × 10^2` = **4000** (canonical amount).
 
-USD
+### Supported Currencies
 
-4000 ($40.00)
+| Currency | Example amount (canonical) | Precision (decimal places) |
+| --- | --- | --- |
+| **USD** | 4000 ($40.00) | 2 |
+| **EUR** | 10000 (€100.00) | 2 |
+| **JPY** | 5000 (¥5000) | 0 |
+| **GBP** | 2500 (£25.00) | 2 |
 
-2
+### Schema Definition
 
-EUR
+Below is the schema definition of the `CurrencyAmount` type:
 
-10000 (€100.00)
+```json
+{
+  "properties": {
+    "amount": {
+      "description": "the amount of money represented in the smallest denomination of the currency. For example, when the currency is USD, then the amount is expressed in cents.",
+      "type": "integer"
+    },
+    "currency_code": {
+      "default": "USD",
+      "description": "The type of currency, in ISO 4217 format, e.g. USD for US dollars",
+      "type": "string"
+    }
+  },
+  "required": ["amount", "currency_code"],
+  "type": "object"
+}
+```
 
-JPY
+## Legacy representation (Deprecated)
 
-5000 (¥5000)
+The legacy representation is an older way of representing amounts. Although this method is still supported for backward compatibility, it is **deprecated** and will be replaced in future releases. You should **migrate to the canonical representation** for new development.
 
-0
+```json
+{
+  "amount": 40.00,
+  "currency_code": "USD"
+}
+```
 
-GBP
+## Date and Time Format
 
-2500 (£25.00)
+`Date` and `DateTime` are represented using a string that conforms to ISO 8601; UTC is assumed if no timezone offset is specified. For example:
 
-Below is the schema definition of CurrencyAmount type:
-
-The legacy representation is an older way of representing amounts. Although this method is still supported for backward compatibility, it is deprecated and will be replaced in future releases. You should migrate to the canonical representation for new development.
-
-Date and DateTime are represented using a string that conforms to ISO8601; UTC is assumed if no timezone offset is specified. For example,
+```json
+{
+  "created_at": "2022-04-28T21:36:29.604020"
+}
+```

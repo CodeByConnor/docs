@@ -4,13 +4,13 @@ description: "Securely display Ramp card numbers and CVV codes in your applicati
 sidebarTitle: "Embedded Cards"
 ---
 
-This guide walks you through embedding Ramp card details in your application. Card numbers and CVV codes are securely displayed to your users via an iframe—card data flows directly from Ramp to your user's browser without touching your servers.
+This guide walks you through embedding Ramp card details in your application. Card numbers and CVV codes are securely displayed to your users via an iframe - card data flows directly from Ramp to your user's browser without touching your servers.
 
 <Note>
   If you want to programmatically create cards for a virtual card issuing flow, see the [Virtual Cards guide](/developer-api/v1/guides/virtual-cards).
 </Note>
 
-## Prerequisites
+## Before You Begin
 
 Before you start, make sure you have:
 
@@ -28,50 +28,256 @@ For information on creating funds and issuing cards, see the [Cards and Funds gu
   Embedded Cards is currently in beta. Reach out via the support ticket submission flow to request a whitelist for your `parent_origin`. This is required before you can generate embed tokens for your domain.
 </Note>
 
-## Integration flow
+## How It Works
 
-<Steps>
-  <Step title="Create a limit">
-    Create a limit using `POST /limits`. A card is automatically created and each card has a unique `card_id`.
-  </Step>
-  <Step title="Generate an embed token">
-    Your backend calls `POST /developer/v1/embedded/cards/{card_id}/embed` to generate a secure embed token.
-  </Step>
-  <Step title="Load the iframe">
-    Your frontend receives the token and loads it in an iframe pointing to Ramp's embed service.
-  </Step>
-  <Step title="Display card details">
-    The user's browser requests card details directly from Ramp. Card data never touches your servers.
-  </Step>
-</Steps>
+This integration follows a four-step flow:
 
-## Enable the embedded cards scope
+- Create a limit -> Create a limit using `POST /limits`. A card will be automatically created and each card has a unique `card_id`.
+- Backend generates embed token -> Your backend calls `POST /developer/v1/embedded/cards/{card_id}/embed` to generate a secure embed token.
+- Frontend loads iframe -> Your frontend receives the token and loads it in an iframe pointing to Ramp's embed service.
+- User views card -> The user's browser requests card details directly from Ramp; card data never touches your servers.
+
+## Step 1: Enable the embedded_cards Scope
 
 Before you can generate embed tokens, you need to enable the `embedded_cards:write` scope on your application.
 
-Enable the `embedded_cards:write` scope on your app in the developer dashboard.
+### Demo Environment
+
+Enable the `embedded_cards:write` scope on your app in the developer dashboard for demo testing.
+
+<img src="/images/Guides/Embedded-card-img.png" alt="Embedded card" width="450" />
+
+### Production Environment
 
 The `embedded_cards:write` scope requires explicit approval for production use. Contact developer support with the client ID of the app you want this scope enabled for.
 
-## Generate an embed token
+## Step 2: Create Endpoint to Generate Embed Token
 
 Create an API endpoint that accepts a `card_id` and `parent_origin`, then calls Ramp's API (`POST /developer/v1/embedded/cards/{card_id}/embed`) to generate an embed token.
 
 Request body:
 
+```json
+{
+  "parent_origin": "your_parent_origin"
+}
+```
+
+```python title="Python/Flask Example"
+from flask import Flask, request, jsonify
+import requests
+import os
+
+app = Flask(__name__)
+
+RAMP_API_BASE = "https://demo-api.ramp.com/developer/v1"
+RAMP_ACCESS_TOKEN = os.environ["RAMP_ACCESS_TOKEN"]
+
+@app.route("/api/generate-embed-token", methods=["POST"])
+def generate_embed_token():
+    data = request.json
+    card_id = data.get("card_id")
+    parent_origin = data.get("parent_origin")
+
+    response = requests.post(
+        f"{RAMP_API_BASE}/embedded/cards/{card_id}/embed",
+        headers={"Authorization": f"Bearer {RAMP_ACCESS_TOKEN}"},
+        json={"parent_origin": parent_origin}
+    )
+
+    if response.status_code == 200:
+        return jsonify(response.json())
+    else:
+        return jsonify({"error": "Failed to generate token"}), response.status_code
+
+if __name__ == "__main__":
+    app.run(port=3001)
+```
+
+```javascript title="Node.js/Express Example"
+const express = require("express");
+const axios = require("axios");
+
+const app = express();
+app.use(express.json());
+
+const RAMP_API_BASE = "https://demo-api.ramp.com/developer/v1";
+const RAMP_ACCESS_TOKEN = process.env.RAMP_ACCESS_TOKEN;
+
+app.post("/api/generate-embed-token", async (req, res) => {
+  const { card_id, parent_origin } = req.body;
+
+  try {
+    const response = await axios.post(
+      `${RAMP_API_BASE}/embedded/cards/${card_id}/embed`,
+      { parent_origin },
+      {
+        headers: {
+          Authorization: `Bearer ${RAMP_ACCESS_TOKEN}`,
+        },
+      }
+    );
+
+    res.json(response.data);
+  } catch (error) {
+    res.status(error.response?.status || 500).json({
+      error: "Failed to generate token",
+    });
+  }
+});
+
+app.listen(3001, () => {
+  console.log("Server running on port 3001");
+});
+```
+
 Response:
 
-The source guide does not include request/response example payloads in the machine-readable export.
+```json
+{
+  "embed_init_token": "{{embed_init_token}}"
+}
+```
 
-## Implement the frontend
+## Step 3: Implement Frontend
 
 Your frontend calls your backend endpoint to get the embed token, then loads the iframe.
 
-## Test your integration
+### React Implementation
+
+```jsx title="RampEmbeddedCard.jsx"
+import React, { useEffect, useRef } from "react";
+
+const RampEmbeddedCard = ({ cardId }) => {
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    const loadCard = async () => {
+      // Call your backend to get embed token
+      const response = await fetch("/api/generate-embed-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          card_id: cardId,
+          parent_origin: window.location.origin,
+        }),
+      });
+
+      const data = await response.json();
+      const embedToken = data.embed_init_token;
+
+      // Load iframe
+      const iframe = iframeRef.current;
+      if (iframe) {
+        iframe.src = "https://demo-embed.ramp.com";
+
+        iframe.onload = () => {
+          setTimeout(() => {
+            iframe.contentWindow.postMessage(
+              {
+                type: "ramp.embed.init",
+                token: embedToken,
+              },
+              "https://demo-embed.ramp.com"
+            );
+          }, 100);
+        };
+      }
+    };
+
+    loadCard();
+  }, [cardId]);
+
+  return (
+    <iframe
+      ref={iframeRef}
+      title="Ramp Card"
+      style={{ width: "100%", height: "400px", border: "none" }}
+      allow="clipboard-write"
+    />
+  );
+};
+
+export default RampEmbeddedCard;
+```
+
+### Using the Component
+
+```jsx title="App.jsx"
+import RampEmbeddedCard from "./RampEmbeddedCard";
+
+function App() {
+  return (
+    <div>
+      <h1>My Card Details</h1>
+      <RampEmbeddedCard cardId="a40a6ce8-70d4-4d06-91e1-0728ad9bbe39" />
+    </div>
+  );
+}
+
+export default App;
+```
+
+### Vanilla JavaScript Implementation
+
+```html title="Vanilla JavaScript"
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ramp Embedded Card</title>
+</head>
+<body>
+  <h1>My Card Details</h1>
+  <iframe id="rampEmbed" style="width: 100%; height: 400px; border: none;" allow="clipboard-write"></iframe>
+
+  <script>
+    const cardId = "a40a6ce8-70d4-4d06-91e1-0728ad9bbe39";
+
+    async function loadCard() {
+      // Call your backend to get embed token
+      const response = await fetch("/api/generate-embed-token", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          card_id: cardId,
+          parent_origin: window.location.origin
+        })
+      });
+
+      const data = await response.json();
+      const embedToken = data.embed_init_token;
+
+      // Load iframe
+      const iframe = document.getElementById("rampEmbed");
+      iframe.src = "https://demo-embed.ramp.com";
+
+      iframe.onload = () => {
+        setTimeout(() => {
+          iframe.contentWindow.postMessage(
+            {
+              type: "ramp.embed.init",
+              token: embedToken
+            },
+            "https://demo-embed.ramp.com"
+          );
+        }, 100);
+      };
+    }
+
+    loadCard();
+  </script>
+</body>
+</html>
+```
+
+## Step 4: Testing Your Integration
+
+### Demo Testing
 
 Navigate to the Embedded Card Demo, paste your `embed_init_token`, and press Load Embed to test the integration.
 
-## Understand parent_origin
+<img src="/images/Guides/Embedded-card-img-2.png" alt="Embedded card" width="450" />
+## What is parent_origin?
 
 The `parent_origin` is the domain where your application is hosted. This must exactly match the `window.location.origin` of the page where you'll embed the iframe.
 
@@ -86,15 +292,14 @@ The origin must match exactly—including protocol (https:// vs http://) and por
 
 ## FAQ
 
-<AccordionGroup>
-  <Accordion title="How do I retrieve card IDs?">
-    You can retrieve card IDs via the Limits API or when creating cards through the [Virtual Cards guide](/developer-api/v1/guides/virtual-cards).
-  </Accordion>
-  <Accordion title="Can I use this in production?">
-    Yes, but you'll need to contact developer support to enable the `embedded_cards:write` scope for your production application.
-  </Accordion>
-  <Accordion title="Why is my embed not loading?">
-    The embed will fail to load if the `parent_origin` doesn't exactly match the origin of the page loading the iframe. Make sure to include the protocol and port number.
-  </Accordion>
-</AccordionGroup>
+### How do I get a card_id?
 
+You can retrieve card IDs via the Limits API or when creating cards through the [Virtual Cards guide](/developer-api/v1/guides/virtual-cards).
+
+### Can I use this in production?
+
+Yes, but you'll need to contact developer support to enable the `embedded_cards:write` scope for your production application.
+
+### What if the parent_origin doesn't match?
+
+The embed will fail to load if the `parent_origin` doesn't exactly match the origin of the page loading the iframe. Make sure to include the protocol and port number.

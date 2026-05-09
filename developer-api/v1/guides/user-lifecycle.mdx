@@ -1,199 +1,299 @@
 ---
 title: "User lifecycle"
-description: "This guide covers three example workflows for managing Ramp users over the Developer API."
 sidebarTitle: "User Lifecycle"
 ---
 
+## Overview
+
+This guide covers three example workflows for managing Ramp users over the Developer API:
+
 - Onboard, update, and deprovision a user
-
 - Deactivate and reactivate a user
-
 - Stage a draft user and schedule their invite for later
+
+### Before you start
 
 Full endpoint schemas live in the Users API reference. The Reference section covers the status model and listing/filtering patterns.
 
-- Works on users from any source
+**Works on users from any source**
+
+Users created outside the Developer API - via HRIS or SCIM sync, a manual invite from the Ramp app, etc. - can still be deactivated, scheduled for deactivation, and reactivated through these endpoints. `GET /developer/v1/users/{user_id}` (or the list endpoint) to see their current state, then apply the relevant scenario below.
+
+You need an OAuth access token with the `users:read` and `users:write` scopes. See the [Authorization guide](/developer-api/v1/developer-resources/authorization) for how to obtain one.
+
+If you plan to set a department, location, or manager on new users, look those up first via `GET /departments`, `GET /locations`, and `GET /users`.
 
-- **Users created outside the Developer API** — via HRIS or SCIM sync, a manual invite from the Ramp app, etc. — can still be deactivated, scheduled for deactivation, and reactivated through these endpoints. GET /developer/v1/users/{user_id} (or the list endpoint) to see their current state, then apply the relevant scenario below.
+### How asynchronous user creation works
 
-You need an OAuth access token with the users:read and users:write scopes. See the Authorization guide for how to obtain one.
+User creation is asynchronous. `POST /developer/v1/users/deferred` returns a task id; poll `GET /developer/v1/users/deferred/status/{task_id}` every 1-2 seconds until `status` is `SUCCESS` (possible values: `STARTED`, `IN_PROGRESS`, `ERROR`, `SUCCESS`). Most tasks finish in under 5 seconds.
 
-If you plan to set a department, location, or manager on new users, look those up first via GET /departments, GET /locations, and GET /users.
+A terminal status response looks like:
 
-User creation is asynchronous. POST /developer/v1/users/deferred returns a task id; poll GET /developer/v1/users/deferred/status/{task_id} every 1–2 seconds until status is SUCCESS (possible values: STARTED, IN_PROGRESS, ERROR, SUCCESS). Most tasks finish in under 5 seconds.
+```json
+{
+  "id": "b39ab676-3faa-4447-ba66-906860219fdf",
+  "status": "SUCCESS",
+  "data": { "user_id": "019db12c-a1e9-7f6e-afc8-2cb64d7f86f7" },
+  "context": { "acting_user_id": "ea8213c3-6b99-49c5-a45f-0b48d66ae0ea" }
+}
+```
 
-### A terminal status response looks like
+On `SUCCESS`, `data.user_id` is the UUID of the created user.
 
-On SUCCESS, data.user_id is the UUID of the created user.
+## Scenario 1: Onboard, update, and deprovision a user
 
-- Scenario 1: Onboard, update, and deprovision a user
+Invite a new hire, keep their profile in sync as the org changes around them, and deactivate them when they leave. The three endpoints here are `POST /users/deferred`, `PATCH /users/{user_id}`, and `PATCH /users/{user_id}/deactivate`.
 
-Invite a new hire, keep their profile in sync as the org changes around them, and deactivate them when they leave. The three endpoints here are POST /users/deferred, PATCH /users/{user_id}, and PATCH /users/{user_id}/deactivate.
+### Invite them on day one
 
-For an employee starting today, call POST /developer/v1/users/deferred with role and their profile fields. This sends the invite email immediately. A typical request body:
+For an employee starting today, call `POST /developer/v1/users/deferred` with `role` and their profile fields. This sends the invite email immediately. A typical request body:
 
-The response is the deferred-task handle: `{ "id": "165c7dc4-7b6b-4ee5-baa6-1f28701b075e" }`.
+```json
+{
+  "email": "jordan.manager@company.com",
+  "first_name": "Jordan",
+  "last_name": "Manager",
+  "role": "BUSINESS_USER",
+  "department_id": "29693a31-0f8d-4c91-be40-016bc0a6161c",
+  "location_id": "1552c5a2-8889-4c91-b557-254190c0616e",
+  "direct_manager_id": "517347b0-0841-4e3f-9b78-45cdb9642f5c",
+  "is_manager": true,
+  "idempotency_key": "hris-sync-2026-04-21-jordan-manager"
+}
+```
 
-- **Only email, first_name, last_name, role, and idempotency_key are required** — if you omit department and location, Ramp assigns the business's defaults. The fields you can send on create:
+The response is the deferred-task handle:
 
-- role
+```json
+{ "id": "165c7dc4-7b6b-4ee5-baa6-1f28701b075e" }
+```
 
-One of BUSINESS_USER, BUSINESS_ADMIN, BUSINESS_BOOKKEEPER, IT_ADMIN, AUDITOR, GUEST_USER. BUSINESS_OWNER cannot be invited via the API.
+Only `email`, `first_name`, `last_name`, `role`, and `idempotency_key` are required - if you omit department and location, Ramp assigns the business's defaults. The fields you can send on create:
 
-- department_id, location_id
+| Field | Notes |
+| --- | --- |
+| `role` | One of `BUSINESS_USER`, `BUSINESS_ADMIN`, `BUSINESS_BOOKKEEPER`, `IT_ADMIN`, `AUDITOR`, `GUEST_USER`. `BUSINESS_OWNER` cannot be invited via the API. |
+| `department_id`, `location_id` | Ramp UUIDs. `location_id` also determines the user's business entity (`entity_id` on the response). |
+| `direct_manager_id` | Ramp UUID of an existing user. The request uses `direct_manager_id`; the response calls it `manager_id`. |
+| `is_manager` | Whether this user can approve spend and manage reports. |
+| `scheduled_deactivation_date` | In `YYYY-MM-DD` format. Useful if you already know the user's end date - see Schedule their last day. Cannot be set for admins or owners. |
+| `idempotency_key` | A client-generated unique string. Ramp rejects duplicate keys with `400 DEVELOPER_7005`; generate a new key for every create attempt. |
 
-Ramp UUIDs. location_id also determines the user's business entity (entity_id on the response).
+Poll the deferred task until it reports `SUCCESS`, then `GET /developer/v1/users/{user_id}` to fetch the user:
 
-- direct_manager_id
+```json
+{
+  "id": "019db12c-faa3-772e-b874-7e8bce265bbb",
+  "email": "jordan.manager@company.com",
+  "first_name": "Jordan",
+  "last_name": "Manager",
+  "role": "BUSINESS_USER",
+  "status": "INVITE_PENDING",
+  "is_manager": true,
+  "department_id": "29693a31-0f8d-4c91-be40-016bc0a6161c",
+  "location_id": "1552c5a2-8889-4c91-b557-254190c0616e",
+  "manager_id": "517347b0-0841-4e3f-9b78-45cdb9642f5c",
+  "scheduled_deactivation_date": null,
+  "scheduled_invitation_date": null,
+  "entity_id": "f3175311-29f5-41b3-800c-d05fd1d8a494"
+}
+```
 
-Ramp UUID of an existing user. The request uses direct_manager_id; the response calls it manager_id.
+The user starts in `INVITE_PENDING`. They transition to `USER_ACTIVE` once they click the invite link and complete onboarding - you'll receive the `users.invite_accepted` webhook at that point (see the Webhooks guide).
 
-- is_manager
+Guest users get an automatic 6-month expiration: when `role` is `GUEST_USER`, Ramp auto-populates `scheduled_deactivation_date` 6 months out from the invite date. To opt out, pass `"scheduled_deactivation_date": null` explicitly on create.
 
-Whether this user can approve spend and manage reports.
+### Keep their profile in sync
 
-- scheduled_deactivation_date
+Role changes, reorgs, moves between locations or entities, and manager changes all go through `PATCH /developer/v1/users/{user_id}`. Only the fields you include are updated; everything else is left untouched. A representative body:
 
-- **In YYYY-MM-DD format. Useful if you already know the user's end date** — see Schedule their last day. Cannot be set for admins or owners.
+```json
+{
+  "department_id": "4eab1943-1234-5678-9abc-def012345678",
+  "location_id": "4350a152-a5e7-4617-bae8-16839beb00d0",
+  "direct_manager_id": "78f823a0-44db-434e-a0e6-4bdb43950434",
+  "is_manager": true,
+  "role": "BUSINESS_BOOKKEEPER"
+}
+```
 
-- idempotency_key
+A successful `PATCH` returns `200 OK` with an empty body - re-fetch the user to see the applied changes.
 
-A client-generated unique string. Ramp rejects duplicate keys with 400 DEVELOPER_7005; generate a new key for every create attempt.
+Patchable fields: `first_name`, `last_name`, `role`, `department_id`, `location_id`, `direct_manager_id`, `is_manager`, `scheduled_deactivation_date`, `auto_promote`. Any other field - including `email`, `scheduled_invitation_date`, and `status` - is silently ignored.
 
-Poll the deferred task until it reports SUCCESS, then GET /developer/v1/users/{user_id} to fetch the user:
+To clear a nullable field like `direct_manager_id` or `scheduled_deactivation_date`, send `null` explicitly.
 
-- **The user starts in INVITE_PENDING. They transition to USER_ACTIVE once they click the invite link and complete onboarding** — you'll receive the users.invite_accepted webhook at that point (see the Webhooks guide).
+### Schedule their last day
 
-- Guest users get an automatic 6-month expiration
+If you know someone's end date ahead of time - a fixed-term contractor, a resignation with notice - `PATCH scheduled_deactivation_date` on the user. Ramp flips them to `USER_INACTIVE` automatically on that date; until then they keep working normally.
 
-When role is GUEST_USER, Ramp auto-populates scheduled_deactivation_date 6 months out from the invite date. To opt out, pass "scheduled_deactivation_date": null explicitly on create.
+`PATCH /developer/v1/users/{user_id}` with `{"scheduled_deactivation_date": "2027-01-15"}`. A subsequent `GET` shows the date populated:
 
-Role changes, reorgs, moves between locations or entities, and manager changes all go through PATCH /developer/v1/users/{user_id}. Only the fields you include are updated; everything else is left untouched. A representative body:
+```json
+{
+  "status": "USER_ACTIVE",
+  "scheduled_deactivation_date": "2027-01-15T17:00:00+00:00"
+}
+```
 
-- **A successful PATCH returns 200 OK with an empty body** — re-fetch the user to see the applied changes.
+To reschedule, `PATCH` again with a new date. To cancel, `PATCH` with `{"scheduled_deactivation_date": null}`.
 
-- **Patchable fields: first_name, last_name, role, department_id, location_id, direct_manager_id, is_manager, scheduled_deactivation_date, auto_promote. Any other field** — including email, scheduled_invitation_date, and status — is silently ignored.
+<Info>
+  **Date vs. datetime**  
+  You submit `scheduled_deactivation_date` as a plain date (`YYYY-MM-DD`), but Ramp returns it as a full ISO-8601 datetime with a time-of-day derived from the business's local timezone. Compare against the date portion only when reading it back.
+</Info>
 
-To clear a nullable field like direct_manager_id or scheduled_deactivation_date, send null explicitly.
+### Deactivate them immediately
 
-- **If you know someone's end date ahead of time** — a fixed-term contractor, a resignation with notice — PATCH scheduled_deactivation_date on the user. Ramp flips them to USER_INACTIVE automatically on that date; until then they keep working normally.
+To deactivate a user synchronously, `PATCH /developer/v1/users/{user_id}/deactivate` with no body. The response is `200 OK`, empty body. The user is now `USER_INACTIVE`:
 
-PATCH /developer/v1/users/{user_id} with `{"scheduled_deactivation_date": "2027-01-15"}`. A subsequent GET shows the date populated:
+```json
+{
+  "id": "019db12c-faa3-772e-b874-7e8bce265bbb",
+  "status": "USER_INACTIVE"
+}
+```
 
-To reschedule, PATCH again with a new date. To cancel, PATCH with `{"scheduled_deactivation_date": null}`.
+Once a user is `USER_INACTIVE`:
 
-- Date vs. datetime
+- All of their cards are frozen and new transactions decline.
+- They can't log in to Ramp or receive notifications.
+- Their historical transactions, receipts, and audit trail remain intact for admins.
 
-You submit scheduled_deactivation_date as a plain date (YYYY-MM-DD), but Ramp returns it as a full ISO-8601 datetime with a time-of-day derived from the business's local timezone. Compare against the date portion only when reading it back.
+Deactivation is idempotent - calling `/deactivate` on an already-inactive user is a no-op and still returns `200 OK`.
 
-To deactivate a user synchronously, PATCH /developer/v1/users/{user_id}/deactivate with no body. The response is 200 OK, empty body. The user is now USER_INACTIVE:
+## Scenario 2: Deactivate and reactivate a user
 
-### Once a user is USER_INACTIVE
+When deactivation isn't permanent - a leave of absence, a contractor pausing between engagements, a mistaken offboarding - Ramp preserves the user record so you can bring them back with a single call. They keep the same `user_id`, cards, department, location, manager, role, and custom fields.
 
-All of their cards are frozen and new transactions decline.
+### Deactivate them now
 
-They can't log in to Ramp or receive notifications.
+`PATCH /developer/v1/users/{user_id}/deactivate` with no body returns `200 OK` and an empty body. The user becomes `USER_INACTIVE`; cards freeze and logins stop working. Historical data stays visible to admins.
 
-Their historical transactions, receipts, and audit trail remain intact for admins.
+### Reactivate them when they come back
 
-- **Deactivation is idempotent** — calling /deactivate on an already-inactive user is a no-op and still returns 200 OK.
+`PATCH /developer/v1/users/{user_id}/reactivate` with no body returns `200 OK` and an empty body. A subsequent `GET` shows them back as `USER_ACTIVE`:
 
-- Scenario 2: Deactivate and reactivate a user
+```json
+{
+  "id": "019db12c-faa3-772e-b874-7e8bce265bbb",
+  "status": "USER_ACTIVE"
+}
+```
 
-- **When deactivation isn't permanent** — a leave of absence, a contractor pausing between engagements, a mistaken offboarding — Ramp preserves the user record so you can bring them back with a single call. They keep the same user_id, cards, department, location, manager, role, and custom fields.
+Previously issued cards are unfrozen and notifications resume. If their role or reporting line changed during the leave, follow up with `PATCH /users/{user_id}` to update those fields.
 
-PATCH /developer/v1/users/{user_id}/deactivate with no body returns 200 OK and an empty body. The user becomes USER_INACTIVE; cards freeze and logins stop working. Historical data stays visible to admins.
+## Scenario 3: Stage a draft user and schedule their invite
 
-PATCH /developer/v1/users/{user_id}/reactivate with no body returns 200 OK and an empty body. A subsequent GET shows them back as USER_ACTIVE:
+For new hires who start in the future - a class of interns starting next Monday, a contractor kicking off on the first of the month - you can stage the user in Ramp as a draft today and have Ramp send the invite automatically on a specific date and time.
 
-Previously issued cards are unfrozen and notifications resume. If their role or reporting line changed during the leave, follow up with PATCH /users/{user_id} to update those fields.
+### Create the draft
 
-- Reactivate instead of re-creating
+Drafts:
 
-Do not call POST /users/deferred for a returning user. Reactivation preserves their spend history and configuration; creating a new record with the same email just returns the existing user_id anyway.
+- Exist as records in your business (you can assign department, location, manager up front).
+- Do not receive an invite email.
+- Cannot log in or spend.
+- Appear in `GET /users?status=USER_DRAFT`.
 
-- Scenario 3: Stage a draft user and schedule their invite
+`POST /developer/v1/users/deferred` with `is_draft: true` in the body:
 
-- **For new hires who start in the future** — a class of interns starting next Monday, a contractor kicking off on the first of the month — you can stage the user in Ramp as a draft today and have Ramp send the invite automatically on a specific date and time.
+```json
+{
+  "email": "taylor.newhire@company.com",
+  "first_name": "Taylor",
+  "last_name": "Newhire",
+  "role": "BUSINESS_USER",
+  "department_id": "29693a31-0f8d-4c91-be40-016bc0a6161c",
+  "location_id": "1552c5a2-8889-4c91-b557-254190c0616e",
+  "is_draft": true,
+  "idempotency_key": "hris-sync-2026-04-21-taylor-newhire"
+}
+```
 
-### Drafts
+Poll the deferred task, then fetch the user - they start in `USER_DRAFT`:
 
-Exist as records in your business (you can assign department, location, manager up front).
+```json
+{
+  "id": "019db12d-be50-718f-988c-d2ed5f7a93d0",
+  "email": "taylor.newhire@company.com",
+  "status": "USER_DRAFT",
+  "role": "BUSINESS_USER",
+  "scheduled_invitation_date": null,
+  "scheduled_deactivation_date": null
+}
+```
 
-Do not receive an invite email.
+### Schedule their invite
 
-Cannot log in or spend.
+`POST /developer/v1/users/{user_id}/invite` with `action: SCHEDULE` and the time you want the invite to go out. `invitation_time` is an ISO-8601 datetime - include a timezone offset so there's no ambiguity.
 
-Appear in GET /users?status=USER_DRAFT.
+```json
+{
+  "action": "SCHEDULE",
+  "invitation_time": "2026-06-15T14:00:00+00:00"
+}
+```
 
-### POST /developer/v1/users/deferred with is_draft: true in the body
+Response: `200 OK`, empty body. The user stays in `USER_DRAFT` with the scheduled time populated:
 
-- **Poll the deferred task, then fetch the user** — they start in USER_DRAFT:
+```json
+{
+  "id": "019db12d-be50-718f-988c-d2ed5f7a93d0",
+  "status": "USER_DRAFT",
+  "scheduled_invitation_date": "2026-06-15T14:00:00+00:00"
+}
+```
 
-- **POST /developer/v1/users/{user_id}/invite with action: SCHEDULE and the time you want the invite to go out. invitation_time is an ISO-8601 datetime** — include a timezone offset so there's no ambiguity.
+When the scheduled time arrives, Ramp sends the invite email automatically and moves the user to `INVITE_PENDING`. Once they accept it, they become `USER_ACTIVE` and you can `PATCH`, deactivate, or reactivate them as normal.
 
-Response: 200 OK, empty body. The user stays in USER_DRAFT with the scheduled time populated:
+### Reschedule, cancel, or send immediately
 
-When the scheduled time arrives, Ramp sends the invite email automatically and moves the user to INVITE_PENDING. Once they accept it, they become USER_ACTIVE and you can PATCH, deactivate, or reactivate them as normal.
+Plans change. `POST /developer/v1/users/{user_id}/invite` takes three actions:
 
-Plans change. POST /developer/v1/users/{user_id}/invite takes three actions:
+| Action | Body | Effect |
+| --- | --- | --- |
+| `SCHEDULE` | `{"action": "SCHEDULE", "invitation_time": "<ISO-8601 datetime>"}` | Sets or updates `scheduled_invitation_date`. Calling it again overwrites the previous scheduled time. User stays `USER_DRAFT`. |
+| `DESCHEDULE` | `{"action": "DESCHEDULE"}` | Clears the scheduled invitation. User stays `USER_DRAFT`. Idempotent - no-op if nothing is pending. |
+| `SEND_NOW` | `{"action": "SEND_NOW"}` | Sends the invite email immediately and transitions the user to `INVITE_PENDING`. |
 
-SCHEDULE
-
-- `{"action": "SCHEDULE", "invitation_time": "&lt;ISO-8601 datetime>"}`
-
-Sets or updates scheduled_invitation_date. Calling it again overwrites the previous scheduled time. User stays USER_DRAFT.
-
-DESCHEDULE
-
-- `{"action": "DESCHEDULE"}`
-
-- **Clears the scheduled invitation. User stays USER_DRAFT. Idempotent** — no-op if nothing is pending.
-
-SEND_NOW
-
-- `{"action": "SEND_NOW"}`
-
-Sends the invite email immediately and transitions the user to INVITE_PENDING.
-
-- Invite actions only apply to draft users
-
-SCHEDULE, DESCHEDULE, and SEND_NOW are only valid when the target user is USER_DRAFT. Calling them on a user in any other state returns 400 DEVELOPER_7154.
+Invite actions only apply to draft users: `SCHEDULE`, `DESCHEDULE`, and `SEND_NOW` are only valid when the target user is `USER_DRAFT`. Calling them on a user in any other state returns `400 DEVELOPER_7154`.
 
 ## Reference
 
-The status field on a user tells you where they are in the lifecycle. The values you'll see from the Developer API are:
+### The user status model
 
-USER_DRAFT
+The `status` field on a user tells you where they are in the lifecycle. The values you'll see from the Developer API are:
 
-The user record exists, but no invite has been sent. They can't log in or spend. Use this to pre-stage users (e.g. new hires starting next month).
+| Status | Meaning |
+| --- | --- |
+| `USER_DRAFT` | The user record exists, but no invite has been sent. They can't log in or spend. Use this to pre-stage users (for example, new hires starting next month). |
+| `INVITE_PENDING` | An invite email has been sent but the user hasn't accepted it yet. |
+| `USER_ACTIVE` | The user has accepted the invite, is onboarded, and can use Ramp. |
+| `USER_INACTIVE` | The user has been deactivated. Cards are frozen, spend is blocked, and they cannot log in. The record is preserved for history and reactivation. |
+| `USER_SUSPENDED` | Ramp has suspended the user for risk or policy reasons. This is rare and cannot be set by API callers. |
 
-INVITE_PENDING
+### Listing and filtering users
 
-An invite email has been sent but the user hasn't accepted it yet.
+`GET /developer/v1/users` supports filtering by `role`, `status`, `department_id`, `location_id`, `entity_id`, `email`, and `employee_id`. Useful patterns:
 
-USER_ACTIVE
+- `GET /users?status=USER_DRAFT` - every user staged as a draft.
+- `GET /users?status=USER_INACTIVE` - deactivated users, for offboarding audits.
+- `GET /users?email=...` - lookup by email. URL-encode `+` as `%2B` and `@` as `%40`.
+- `GET /users?role=GUEST_USER` - every guest in the business.
 
-The user has accepted the invite, is onboarded, and can use Ramp.
+Results are paginated with `page_size` (between 2 and 100, default 20) and `start` (the cursor from the previous page's `page.next`). A filtered response:
 
-USER_INACTIVE
+```json
+{
+  "data": [
+    {"id": "019db12d-6a1d-...", "role": "GUEST_USER", "status": "INVITE_PENDING"},
+    {"id": "448ebd2a-eeaa-...", "role": "GUEST_USER", "status": "USER_ACTIVE"}
+  ],
+  "page": {
+    "next": "https://api.ramp.com/developer/v1/users?role=GUEST_USER&page_size=2&start=448ebd2a-eeaa-4bb8-a762-6770fc2018f3"
+  }
+}
+```
 
-The user has been deactivated. Cards are frozen, spend is blocked, and they cannot log in. The record is preserved for history and reactivation.
-
-USER_SUSPENDED
-
-Ramp has suspended the user for risk or policy reasons. This is rare and cannot be set by API callers.
-
-GET /developer/v1/users supports filtering by role, status, department_id, location_id, entity_id, email, and employee_id. Useful patterns:
-
-- **GET /users?status=USER_DRAFT** — every user staged as a draft.
-
-- **GET /users?status=USER_INACTIVE** — deactivated users, e.g. for offboarding audits.
-
-- **GET /users?email=...** — lookup by email. URL-encode + as %2B and @ as %40.
-
-- **GET /users?role=GUEST_USER** — every guest in the business.
-
-Results are paginated with page_size (between 2 and 100, default 20) and start (the cursor from the previous page's page.next). A filtered response:
-
-Follow page.next until it returns null.
+Follow `page.next` until it returns `null`.

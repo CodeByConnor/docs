@@ -1,23 +1,63 @@
 ---
 title: "Deferred Tasks"
-description: "Some API calls, for example requesting for a new card, require asynchronous processing. They are all denoted with /deferred/ in the request URL."
 ---
 
+Some API calls, for example requesting a new card, require asynchronous processing. They are all denoted with `/deferred/` in the request URL.
 
-For these tasks, the API will return immediately with a task ID. This ID can then be used to call a GET deferred/status/{id} endpoint to check the status of the corresponding task.
+For these tasks, the API returns immediately with a task ID. You can then call a `GET .../deferred/status/{id}` endpoint to check the status of that task.
 
-For example, let's create a new virtual card. The initial request to POST /developer/v1/cards/deferred/virtual will return an ID.
+## Example: Creating a Virtual Card
 
-This means that asynchronous task processing has started. Information about the task can be requested by calling the relevant deferred task status endpoint, in this case by calling GET /developer/v1/card/deferred/status/eca553b8-6923-42b2-aea9-8f3c15b079ff.
+To create a new virtual card asynchronously, send:
 
-The following information is made available:
+`POST /developer/v1/cards/deferred/virtual`
 
-- **status**: Represented by one of the following - STARTED, IN_PROGRESS, ERROR, SUCCESS.
+The response includes a task id:
 
-- **data**: Additional details on status. If the task processing succeeded, status="SUCCESS"; in the case of creation tasks, the id field returns the new object ID. If the task processing failed, as indicated by status="ERROR", the error field is populated with information about the error.
+```json
+{
+  "id": "eca553b8-6923-42b2-aea9-8f3c15b079ff"
+}
+```
 
-- **context**: Static information about the initial request such as acting_user_id. For tasks with existing objects, such as card suspension, the ID of the targeted Ramp object is available.
+That means asynchronous processing has started. To check status, call the deferred task status endpoint for that resource with the id from the response—for example:
 
-You should poll the status endpoint periodically until the task completes:
+`GET /developer/v1/card/deferred/status/eca553b8-6923-42b2-aea9-8f3c15b079ff`
 
-Once the status becomes SUCCESS or ERROR, the task is complete and you can proceed accordingly.
+## Task Status Response
+
+The status payload includes:
+
+- **`status`:** One of `STARTED`, `IN_PROGRESS`, `ERROR`, or `SUCCESS`.
+- **`data`:** Extra detail for the outcome.
+  - If `status` is `SUCCESS`, the `id` field returns the new object id (for creation tasks).
+  - If `status` is `ERROR`, the `error` field is populated with error information.
+- **`context`:** Static information about the original request, such as `acting_user_id`. For tasks on existing objects (for example, card suspension), the targeted Ramp object id may appear here.
+
+Example response while the task is starting:
+
+```json
+{
+  "id": "eca553b8-6923-42b2-aea9-8f3c15b079ff",
+  "data": {
+    "error": null,
+    "id": null,
+    "misc": null
+  },
+  "status": "STARTED",
+  "context": {
+    "acting_user_id": "afb554f5-ccef-4d53-bf74-bec80f5f4866"
+  }
+}
+```
+
+## Polling for Completion
+
+Poll the status endpoint periodically until the task finishes.
+
+```bash
+curl "https://api.ramp.com/developer/v1/card/deferred/status/eca553b8-6923-42b2-aea9-8f3c15b079ff" \
+  -H "Authorization: Bearer $RAMP_API_TOKEN"
+```
+
+Once the status becomes `SUCCESS` or `ERROR`, the task is complete and you can proceed accordingly.

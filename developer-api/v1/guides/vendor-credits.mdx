@@ -1,25 +1,82 @@
 ---
 title: "Vendor Credits"
-description: "This guide explains how integrators can enable and use vendor credits with the Ramp API."
 ---
 
 <Note>
   This feature is currently in beta.
 </Note>
 
-## Requirements
+## Overview
 
-- Your app must have scopes accounting:read, accounting:write, and vendors:read
+This guide explains how integrators can enable and use vendor credits with the Ramp API.
+
+## Setup Guide and Feature Support
+
+- Your app must have scopes `accounting:read`, `accounting:write`, and `vendors:read`
 
 <Note>
   This setting is managed at the Accounting Connection level. If you plan on creating multiple Accounting Connections, you need to configure this setting for each connection.
 </Note>
 
-For new connections: Make a POST call to /developer/v1/accounting/connection with settings.vendor_credits_enabled set to true:
+## Step 1. Enable vendor credits on your accounting connection
 
-For existing connections: First, retrieve your connection ID by making a GET call to /developer/v1/accounting/connection:
+**For new connections:**
 
-Then make a PATCH call to /developer/v1/accounting/connection/{connection_id} with the id to enable vendor credits:
+Make a `POST` call to `/developer/v1/accounting/connection` with `settings.vendor_credits_enabled` set to `true`:
+
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/connection" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_active": true,
+    "remote_provider_name": "Your ERP Name",
+    "settings": {
+      "vendor_credits_enabled": true
+    }
+  }'
+```
+
+**For existing connections:**
+
+First, retrieve your connection ID by making a `GET` call to `/developer/v1/accounting/connection`:
+
+```bash
+curl -X GET "{environment-url}/developer/v1/accounting/connection" \
+  -H "Authorization: Bearer <token>"
+```
+
+**Example response:**
+
+```json
+{
+  "connection_type": "API",
+  "is_active": true,
+  "status": "linked",
+  "settings": {
+    "vendor_credits_enabled": true
+  },
+  "id": "8c0955d6-c8bf-4421-b3b5-d450b91afa7b",
+  "last_linked_at": "2025-11-02T21:29:19+00:00",
+  "created_at": "2025-11-02T21:29:19+00:00",
+  "remote_provider_name": "ACCOUNTING_SEED"
+}
+```
+
+Then make a `PATCH` call to `/developer/v1/accounting/connection/<connection_id>` with the id to enable vendor credits:
+
+```bash
+curl -X PATCH "{environment-url}/developer/v1/accounting/connection/<connection_id>" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "settings": {
+      "vendor_credits_enabled": true
+    }
+  }'
+```
+
+## Step 2. Create vendor credits in the Ramp UI
 
 Once vendor credits are enabled, users can create them in the Ramp platform:
 
@@ -31,14 +88,83 @@ Once vendor credits are enabled, users can create them in the Ramp platform:
 
 - Select Vendor Credit and fill in the required fields
 
-To list all vendor credits, make a GET call to /developer/v1/vendors/credits:
+<img src="/images/Guides/Vender-credits-1.png" alt="Vendor credits" width="450" />
 
-### Example response
+## Step 3. List vendor credits
 
-- List vendor credits for a specific vendor
+To list all vendor credits, make a `GET` call to `/developer/v1/vendors/credits`:
 
-To retrieve all vendor credits associated with a specific vendor, make a GET call to /developer/v1/vendors/{vendor_id}/credits. Use the vendor_id from the response above or from your vendor records:
+```bash
+curl -X GET "{environment-url}/developer/v1/vendors/credits" \
+  -H "Authorization: Bearer <token>"
+```
+
+**Example response:**
+
+```json
+{
+  "page": {
+    "next": null
+  },
+  "data": [
+    {
+      "total_applied_amount": {
+        "minor_unit_conversion_rate": 100,
+        "currency_code": "USD",
+        "amount": 0
+      },
+      "reference_number": "1111",
+      "id": "1ee5d963-01d6-495d-9a07-7a239c6c737f",
+      "accounting_field_selections": [],
+      "inventory_line_items": [],
+      "vendor_id": "aa53fbd9-6576-4959-9252-fd1ba3ab8df7",
+      "reference_bill_id": null,
+      "applied_draft_bills": [],
+      "created_at": "2025-10-28T14:21:57+00:00",
+      "expense_line_items": [
+        {
+          "memo": "",
+          "amount": {
+            "minor_unit_conversion_rate": 100,
+            "currency_code": "USD",
+            "amount": 22200
+          },
+          "accounting_field_selections": []
+        }
+      ],
+      "applied_bills": [],
+      "total_amount": {
+        "minor_unit_conversion_rate": 100,
+        "currency_code": "USD",
+        "amount": 22200
+      },
+      "accounting_date": "2025-10-28",
+      "remaining_amount": {
+        "minor_unit_conversion_rate": 100,
+        "currency_code": "USD",
+        "amount": 22200
+      }
+    }
+  ]
+}
+```
+
+### List vendor credits for a specific vendor
+
+To retrieve all vendor credits associated with a specific vendor, make a `GET` call to `/developer/v1/vendors/{vendor_id}/credits`. Use the `vendor_id` from the response above or from your vendor records:
+
+```bash
+curl -X GET "{environment-url}/developer/v1/vendors/<vendor_id>/credits" \
+  -H "Authorization: Bearer <token>"
+```
 
 This endpoint returns the same response format as the general credits list, but filtered to only include credits for the specified vendor.
 
-To retrieve a specific vendor credit, make a GET call to /developer/v1/vendors/credits:
+## Step 4. Get a single vendor credit
+
+To retrieve a specific vendor credit, make a `GET` call to `/developer/v1/vendors/credits/<vendor_credit_id>`:
+
+```bash
+curl -X GET "{environment-url}/developer/v1/vendors/credits/<vendor_credit_id>" \
+  -H "Authorization: Bearer <token>"
+```

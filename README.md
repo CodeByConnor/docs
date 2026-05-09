@@ -1,5 +1,7 @@
 # Ramp Developer API (Mintlify)
 
+This repo is a **take-home assignment** for a Mintlify interview: a migration of **Ramp’s public developer documentation** ([docs.ramp.com](https://docs.ramp.com/)) onto the Mintlify platform—information architecture, guide MDX, media, and OpenAPI-driven API reference—following their migration checklist.
+
 Mintlify deployment of **Ramp Developer API** documentation. Guide content is generated from Ramp’s public **`llms-guides`** exports; API reference is wired to Ramp’s **OpenAPI** JSON.
 
 ## Prerequisites
@@ -22,7 +24,7 @@ Refresh guide MDX from Ramp (requires network):
 node migration/convert-from-llms.mjs
 ```
 
-Then restore [developer-api/v1/introduction.mdx](developer-api/v1/introduction.mdx) if you use the hand-tuned quickstart layout.
+Then restore [developer-api/v1/getting-started/introduction.mdx](developer-api/v1/getting-started/introduction.mdx) if you use the hand-tuned quickstart layout.
 
 ## Files
 

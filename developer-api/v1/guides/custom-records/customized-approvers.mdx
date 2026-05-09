@@ -4,148 +4,338 @@ description: "Matrix Tables let you define lookup relationships between Ramp obj
 sidebarTitle: "Customized Approvers"
 ---
 
-- **This guide walks through building a Project Approver Matrix that maps each project to a designated approver. Once configured, this matrix can drive approval workflows in Ramp** — when an employee submits spend tagged to "Marketing Events," Ramp knows to route it to the assigned approver.
+This guide walks through building a Project Approver Matrix that maps each project to a designated approver. Once configured, this matrix can drive approval workflows in Ramp - when an employee submits spend tagged to "Marketing Events," Ramp knows to route it to the assigned approver.
 
-- Marketing Events
+## What you'll build
 
-- Robert Gu
+| Project | Approver |
+| --- | --- |
+| Marketing Events | Robert Gu |
+| Services | Elizabeth Smith |
 
-- Services
-
-- Elizabeth Smith
+## Prerequisites
 
 - A Ramp Plus or Enterprise account
+- An OAuth client with `custom_records:read`, `custom_records:write`, `accounting:read`, and `users:read` scopes
+- At least one accounting field with options configured (for example, a "Project Type" field synced from your ERP)
 
-- An OAuth client with custom_records:read, custom_records:write, accounting:read, and users:read scopes
+## Step 1: Authenticate
 
-- At least one accounting field with options configured (e.g., a "Project Type" field synced from your ERP)
+Obtain an access token using client credentials:
 
-### Obtain an access token using client credentials
+```bash
+curl -X POST "https://api.ramp.com/developer/v1/token" \
+  -u "${CLIENT_ID}:${CLIENT_SECRET}" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials&scope=custom_records:read custom_records:write accounting:read users:read"
+```
 
-Use the access_token as a Bearer token in all subsequent requests.
+```json
+{
+  "access_token": "ramp_business_tok_...",
+  "token_type": "Bearer",
+  "expires_in": 864000,
+  "scope": "custom_records:read custom_records:write accounting:read users:read"
+}
+```
 
-- **Matrix Tables that use accounting dimensions as inputs require the accounting_field_ramp_id** — the Ramp UUID of the accounting field whose options you want to map.
+Use the `access_token` as a Bearer token in all subsequent requests.
 
-### List your accounting fields to find the right one
+## Step 2: Identify your accounting field
 
-- **Note the ramp_id** — you'll need it when creating the matrix table.
+Matrix Tables that use accounting dimensions as inputs require the `accounting_field_ramp_id` - the Ramp UUID of the accounting field whose options you want to map.
 
-- Step 3: Create the Matrix Table
+List your accounting fields to find the right one:
 
-- accounting_field_ramp_id is required
+```bash
+curl "https://api.ramp.com/developer/v1/accounting/fields" \
+  -H "Authorization: Bearer $TOKEN"
+```
 
-When referencing accounting_field_options as an input column, you must include accounting_field_ramp_id to specify which accounting field's options to use.
+```json
+{
+  "data": [
+    {
+      "ramp_id": "7e2aef55-237f-47c8-8439-df6fd2842bab",
+      "name": "Project Type",
+      "id": "PROJECT_TYPE"
+    }
+  ]
+}
+```
 
-many_to_many: Each project can map to one or more approvers. Use PUT to replace all approvers for a row, or -/append and -/remove to modify them individually.
+Note the `ramp_id` - you'll need it when creating the matrix table.
 
-many_to_one: Each project maps to exactly one approver. Use PUT to set or replace.
+## Step 3: Create the Matrix Table
 
-For approval routing tables, many_to_many is usually the easier default. It works fine when you only have one approver today, and it gives you room to add backups later without changing the column definition.
+```bash
+curl -X POST "https://api.ramp.com/developer/v1/custom-records/matrix-tables" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "project_approver",
+    "label": "Project Approver",
+    "input_columns": [
+      {
+        "name": "project",
+        "label": "Project",
+        "column_type": {
+          "type": "native_table",
+          "table_name": "accounting_field_options",
+          "accounting_field_ramp_id": "7e2aef55-237f-47c8-8439-df6fd2842bab"
+        }
+      }
+    ],
+    "result_columns": [
+      {
+        "name": "approver",
+        "label": "Approver",
+        "cardinality": "many_to_many",
+        "native_table": {
+          "type": "native_table",
+          "table_name": "users"
+        }
+      }
+    ]
+  }'
+```
 
-- Step 4: Populate rows
+### Cardinality
 
-Use the PUT endpoint to upsert rows. Each row maps a project (input) to an approver (result).
+`accounting_field_ramp_id` is required.
 
-When referencing a user in the results, you can identify them by either their Ramp UUID or their email address:
+When referencing `accounting_field_options` as an input column, you must include `accounting_field_ramp_id` to specify which accounting field's options to use.
 
-- Ramp UUID
+- `many_to_many`: Each project can map to one or more approvers. Use `PUT` to replace all approvers for a row, or `-/append` and `-/remove` to modify them individually.
+- `many_to_one`: Each project maps to exactly one approver. Use `PUT` to set or replace.
 
-- `{"column_name": "id", "value": "23b24cd9-47d2-438b-842e-f81783df0ab3"}`
+For approval routing tables, `many_to_many` is usually the easier default. It works fine when you only have one approver today, and it gives you room to add backups later without changing the column definition.
 
-- Email
+## Step 4: Populate rows
 
-- `{"column_name": "email", "value": "robert.gu@company.com"}`
+Use the `PUT` endpoint to upsert rows. Each row maps a project (input) to an approver (result).
 
-For the inputs, accounting field options can be referenced by Ramp ID, or by their ERP-backed remote_code / remote_name values using code and name:
+### Identifying users
 
-- Option ramp_id
+When referencing a user in the `results`, you can identify them by either their Ramp UUID or their email address:
 
-- `{"column_name": "id", "value": "08318be9-9a77-4504-8f0f-70fb5a85a3dd"}`
+| Identifier | Example |
+| --- | --- |
+| Ramp UUID | `{"column_name": "id", "value": "23b24cd9-47d2-438b-842e-f81783df0ab3"}` |
+| Email | `{"column_name": "email", "value": "robert.gu@company.com"}` |
 
-- ERP code (remote_code)
+### Identifying accounting field options
 
-- `{"column_name": "code", "value": "MKT_EVENTS"}`
+For the `inputs`, accounting field options can be referenced by Ramp ID, or by their ERP-backed `remote_code` / `remote_name` values using `code` and `name`:
 
-- ERP name (remote_name)
+| Identifier | Example |
+| --- | --- |
+| Option `ramp_id` | `{"column_name": "id", "value": "08318be9-9a77-4504-8f0f-70fb5a85a3dd"}` |
+| ERP code (`remote_code`) | `{"column_name": "code", "value": "MKT_EVENTS"}` |
+| ERP name (`remote_name`) | `{"column_name": "name", "value": "Marketing Events"}` |
 
-- `{"column_name": "name", "value": "Marketing Events"}`
+`code` and `name` are often easier because they let you skip the extra field-options lookup, but they only work when the value is unique within the selected accounting field. If multiple options share the same code or name, the API returns an error.
 
-code and name are often easier because they let you skip the extra field-options lookup, but they only work when the value is unique within the selected accounting field. If multiple options share the same code or name, the API returns an error.
+See [Supported Native Tables](/developer-api/v1/guides/custom-records#supported-native-tables) for the full list of valid identifiers per object type.
 
-See Supported Native Tables for the full list of valid identifiers per object type.
+### Example: using code to identify projects and email to identify approvers
 
-The response tells you how many rows were created vs updated. Upserting the same project with a different approver returns "inserted": 0, "updated": 1.
+```bash
+curl -X PUT "https://api.ramp.com/developer/v1/custom-records/matrix-tables/project_approver/rows" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": [
+      {
+        "inputs": [
+          {
+            "column_name": "project",
+            "identifier": { "column_name": "code", "value": "MKT_EVENTS" }
+          }
+        ],
+        "results": [
+          {
+            "column_name": "approver",
+            "identifier": { "column_name": "email", "value": "robert.gu@company.com" }
+          }
+        ]
+      },
+      {
+        "inputs": [
+          {
+            "column_name": "project",
+            "identifier": { "column_name": "code", "value": "SERVICES" }
+          }
+        ],
+        "results": [
+          {
+            "column_name": "approver",
+            "identifier": { "column_name": "email", "value": "elizabeth.smith@company.com" }
+          }
+        ]
+      }
+    ]
+  }'
+```
 
-To reassign a project to a different approver, PUT the same input with a new result set. For many_to_many columns, PUT replaces the full list of approvers for that row:
+```json
+{
+  "metadata": { "inserted": 2, "updated": 0 }
+}
+```
 
-The "updated": 1 confirms the existing row was modified, not duplicated.
+## Step 5: Verify
+
+```bash
+curl -X POST "https://api.ramp.com/developer/v1/custom-records/matrix-tables/project_approver/list-rows" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```
+
+## Update an approver
+
+To reassign a project to a different approver, `PUT` the same input with a new result set. For `many_to_many` columns, `PUT` replaces the full list of approvers for that row:
+
+```bash
+curl -X PUT "https://api.ramp.com/developer/v1/custom-records/matrix-tables/project_approver/rows" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": [
+      {
+        "inputs": [
+          {
+            "column_name": "project",
+            "identifier": { "column_name": "code", "value": "MKT_EVENTS" }
+          }
+        ],
+        "results": [
+          {
+            "column_name": "approver",
+            "identifier": { "column_name": "email", "value": "holly.flax@company.com" }
+          }
+        ]
+      }
+    ]
+  }'
+```
+
+```json
+{
+  "metadata": { "inserted": 0, "updated": 1 }
+}
+```
+
+## Delete a row
 
 Remove a project-to-approver mapping using the row ID from the list-rows response:
 
+```bash
+curl -X DELETE "https://api.ramp.com/developer/v1/custom-records/matrix-tables/project_approver/rows/019d4a36-3ec3-78fd-ab6f-202ee48c093e" \
+  -H "Authorization: Bearer $TOKEN"
+```
+
 Returns HTTP 204 on success with no response body.
 
-- Row ID is required
+<Note>
+  **Row ID is required**  
+  You need the row's UUID to delete it. Get this from the `id` field in the list-rows response - there's no way to delete by input values directly.
+</Note>
 
-- **You need the row's UUID to delete it. Get this from the id field in the list-rows response** — there's no way to delete by input values directly.
+## Add a result column
 
 You can extend a matrix table with additional result columns without recreating it. For example, adding a secondary approver for backup coverage:
 
-### Once added, you can populate both columns in a single upsert
+```bash
+curl -X POST "https://api.ramp.com/developer/v1/custom-records/matrix-tables/project_approver/columns" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "secondary_approver",
+    "label": "Secondary Approver",
+    "cardinality": "many_to_many",
+    "native_table": {
+      "type": "native_table",
+      "table_name": "users"
+    }
+  }'
+```
 
-- Consistent columns in batch upserts
+```json
+{
+  "column_id": "019d4a3a-16ef-7e7c-be68-2205f26a1fe4"
+}
+```
 
-- **All rows in a single PUT request must include the same set of result columns. If one row sets both approver and secondary_approver, every row in that batch must too. If a row doesn't have a secondary approver, you still need to include the column** — the API will return an error otherwise.
+Once added, you can populate both columns in a single upsert:
 
-- Rename a column or table
+```bash
+curl -X PUT "https://api.ramp.com/developer/v1/custom-records/matrix-tables/project_approver/rows" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "data": [
+      {
+        "inputs": [
+          {
+            "column_name": "project",
+            "identifier": { "column_name": "id", "value": "08318be9-..." }
+          }
+        ],
+        "results": [
+          { "column_name": "approver", "identifier": { "column_name": "email", "value": "robert.gu@company.com" } },
+          { "column_name": "secondary_approver", "identifier": { "column_name": "email", "value": "holly.flax@company.com" } }
+        ]
+      }
+    ]
+  }'
+```
+
+<Warning>
+  **Consistent columns in batch upserts**  
+  All rows in a single PUT request must include the same set of result columns. If one row sets both `approver` and `secondary_approver`, every row in that batch must too. If a row doesn't have a secondary approver, you still need to include the column - the API will return an error otherwise.
+</Warning>
+
+## Rename a column or table
 
 Column and table API names can be changed without affecting the data. This is useful when refactoring your naming conventions.
 
-Returns HTTP 204. The column is now referenced as backup_approver in all subsequent API calls. The display label ("Secondary Approver") is unchanged.
+### Rename a column
 
-- **Returns HTTP 204. The old table name stops working immediately** — update any integrations that reference the previous name.
+```bash
+curl -X PATCH "https://api.ramp.com/developer/v1/custom-records/matrix-tables/project_approver/columns/secondary_approver" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "new_name": "backup_approver" }'
+```
 
-- Naming rules
+Returns HTTP 204. The column is now referenced as `backup_approver` in all subsequent API calls. The display label ("Secondary Approver") is unchanged.
 
-API names must contain only lowercase letters and underscores. No hyphens, spaces, or uppercase characters.
+### Rename a table
 
-CUSTOM_RECORDS_7001
+```bash
+curl -X POST "https://api.ramp.com/developer/v1/custom-records/matrix-tables/project_approver/rename" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{ "new_name": "project_approval_matrix" }'
+```
 
-- Table already exists
+Returns HTTP 204. The old table name stops working immediately - update any integrations that reference the previous name.
 
-- Duplicate table name
+<Note>
+  **Naming rules**  
+  API names must contain only lowercase letters and underscores. No hyphens, spaces, or uppercase characters.
+</Note>
 
-CUSTOM_RECORDS_7002
+## Error reference
 
-- Unknown column name
-
-- Column doesn't exist on the table
-
-CUSTOM_RECORDS_7003
-
-- Inconsistent set of columns
-
-- Rows in batch have different result columns
-
-CUSTOM_RECORDS_7005
-
-- Cannot find native row
-
-- Invalid ID or inactive option
-
-CUSTOM_RECORDS_7007
-
-- Duplicate input combinations
-
-- Same input combo appears twice in one request
-
-CUSTOM_RECORDS_7018
-
-- Invalid native object column name
-
-- Use id not ramp_id for field options
-
-CUSTOM_RECORDS_7020
-
-- Cannot append to many-to-one column
-
-- Use PUT instead of -/append for single-value columns
+| Error Code | Message | Cause |
+| --- | --- | --- |
+| `CUSTOM_RECORDS_7001` | Table already exists | Duplicate table name |
+| `CUSTOM_RECORDS_7002` | Unknown column name | Column doesn't exist on the table |
+| `CUSTOM_RECORDS_7003` | Inconsistent set of columns | Rows in batch have different result columns |
+| `CUSTOM_RECORDS_7005` | Cannot find native row | Invalid ID or inactive option |
+| `CUSTOM_RECORDS_7007` | Duplicate input combinations | Same input combo appears twice in one request |
+| `CUSTOM_RECORDS_7018` | Invalid native object column name | Use `id` not `ramp_id` for field options |
+| `CUSTOM_RECORDS_7020` | Cannot append to many-to-one column | Use `PUT` instead of `-/append` for single-value columns |

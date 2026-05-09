@@ -1,29 +1,55 @@
 ---
 title: "Sync Button"
-description: "This guide explains how integrators can set up the Accounting Sync Button for Accounting API-based connections. Once enabled for your integration, connected customers can initiate transaction and reimbursement syncs directly from the Ramp UI."
 ---
 
 <Note>
   This feature is currently in alpha.
 </Note>
 
-Transaction Sync Button appears on Accounting > Transactions and requires transactions:read, accounting:read, and accounting:write
+## Overview
 
-Reimbursement Sync Button appears on Accounting > Reimbursements and requires reimbursements:read, accounting:read, and accounting:write
+This guide explains how integrators can set up the Accounting Sync Button for Accounting API-based connections. Once enabled for your integration, connected customers can initiate transaction and reimbursement syncs directly from the Ramp UI.
 
-Both flows use the same accounting connection pattern: subscribe to a webhook, enable the sync button on the connection, fetch items with the requested_to_sync filter, then POST the sync result back to /developer/v1/accounting/syncs
+## Supported sync flows
 
-- Transaction Sync Button
+- Transaction Sync Button appears on Accounting > Transactions and requires `transactions:read`, `accounting:read`, and `accounting:write`.
+- Reimbursement Sync Button appears on Accounting > Reimbursements and requires `reimbursements:read`, `accounting:read`, and `accounting:write`.
 
-Create a webhook subscription with the transactions.sync_requested event type. This will fire when the sync button is pressed.
+Both flows use the same accounting connection pattern: subscribe to a webhook, enable the sync button on the connection, fetch items with the `requested_to_sync` filter, then `POST` the sync result back to `/developer/v1/accounting/syncs`.
+
+## Transaction Sync Button
+
+### Step 1. Subscribe to the `transactions.sync_requested` webhook
+
+Create a webhook subscription with the `transactions.sync_requested` event type. This will fire when the sync button is pressed.
 
 To create the webhook, make a POST call to the /developer/v1/webhooks endpoint and include transactions.sync_requested in the event_types array:
 
+```bash
+curl -X POST "https://api.ramp.com/developer/v1/webhooks" \
+  -H "Authorization: Bearer $RAMP_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "endpoint_url": "https://your-domain.com/webhooks",
+    "event_types": ["transactions.sync_requested"]
+  }'
+```
+
 Ramp will send a POST request with a challenge to your endpoint during setup:
 
-- Receive the challenge string from Ramp
+1. Receive the `challenge` string from Ramp
+2. Respond by making a verification API call:
 
-### Respond by making a verification API call
+```bash
+curl -X POST "https://api.ramp.com/developer/v1/webhooks/{webhook_id}/verify" \
+  -H "Authorization: Bearer $RAMP_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "challenge": "CHALLENGE_STRING_FROM_RAMP"
+  }'
+```
+
+### Step 2. Enable the Transaction Sync Button on your accounting connection
 
 Enable the setting that allows the transaction sync button for this connection. Once turned on, this shows the Sync button on the Accounting > Transactions page in Ramp.
 
@@ -33,31 +59,102 @@ Enable the setting that allows the transaction sync button for this connection. 
 
 For new connections: Make a POST call to /developer/v1/accounting/connection with settings.transaction_sync_button_enabled set to true:
 
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/connection" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_active": true,
+    "remote_provider_name": "Your ERP Name",
+    "settings": {
+      "transaction_sync_button_enabled": true
+    }
+  }'
+```
+
 For existing connections: First, retrieve your connection ID by making a GET call to /developer/v1/accounting/connection:
+
+```bash
+curl -X GET "{environment-url}/developer/v1/accounting/connection" \
+  -H "Authorization: Bearer <token>"
+```
 
 Then make a PATCH call to /developer/v1/accounting/connection/{connection_id}, using the id from the previous response as the connection_id, with settings.transaction_sync_button_enabled set to true:
 
+```bash
+curl -X PATCH "{environment-url}/developer/v1/accounting/connection/<connection_id>" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "settings": {
+      "transaction_sync_button_enabled": true
+    }
+  }'
+```
+
 Once enabled, the Sync button appears on the Accounting > Transactions page in Ramp.
+
+<img src="/images/Guides/Sync-image.png" alt="Sync image" width="550" />
 
 Since you've subscribed to the webhook, you will receive a transactions.sync_requested event when a customer clicks the Sync button:
 
-For the remaining steps, keep track of the sync_request_id value.
+```json
+{
+  "business_id": "70244a39-d6f6-4111-94e1-952e8911961d",
+  "created_at": "2026-01-29T23:48:56.076424+00:00",
+  "id": "019c0c28-f33a-7cb6-a83f-070f6882184d",
+  "object": {
+    "count": 2,
+    "id": "019c0c28-f32e-742a-b8e3-07e1aa7e71ca",
+    "sync_request_id": "019c0c28-f32e-742a-b8e3-07e1aa7e71ca"
+  },
+  "type": "transactions.sync_requested"
+}
+```
+
+For the remaining steps, keep track of the `sync_request_id` value.
 
 <Warning>
-- Important: 5-minute response window
+  Important: 5-minute response window
 </Warning>
 
 You must respond by posting the Accounting Sync within 5 minutes of receiving the webhook. Transactions that don't have a sync posted within that window will be automatically marked as failed.
 
+### Step 3. Fetch transactions, sync, and POST back to Ramp
+
 After receiving the transactions.sync_requested webhook, fetch the transactions that were requested for sync by calling the /developer/v1/transactions endpoint with the requested_to_sync filter. Only the transactions that were requested to sync will be returned.
 
+```bash
+curl -X GET "{environment-url}/developer/v1/transactions?requested_to_sync=True" \
+  -H "Authorization: Bearer <token>"
+```
+
 Once you've synced the transaction data to your system, make a POST call to /developer/v1/accounting/syncs. Include the sync_request_id from the webhook payload in the request body.
+
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/syncs" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "your-unique-idempotency-key",
+    "sync_request_id": "<sync_request_id>",
+    "sync_type": "TRANSACTION_SYNC",
+    "successful_syncs": [
+      {
+        "id": "<transaction_id>",
+        "reference_id": "your_external_id"
+      }
+    ]
+  }'
+```
 
 ### Notes
 
 You can make multiple API calls to POST /developer/v1/accounting/syncs per sync request by providing the same sync_request_id.
 
 Ramp will update the UI in real time with the accurate number of transactions successfully synced or failed.
+
+### Customer journey
 
 Customers will see the same sync flow in the UI as they would with a direct Ramp accounting integration:
 
@@ -67,28 +164,126 @@ View the sync progress at the top of the screen in real time.
 
 See a summary of successes and errors (with error reasons) in the UI once the sync completes.
 
-- Reimbursement Sync Button
+## Reimbursement Sync Button
 
-Create a webhook subscription with the reimbursements.sync_requested event type. This will fire when the sync button is pressed.
+### Step 1. Subscribe to the `reimbursements.sync_requested` webhook
+
+Create a webhook subscription with the `reimbursements.sync_requested` event type. This will fire when the sync button is pressed.
 
 To create the webhook, make a POST call to the /developer/v1/webhooks endpoint and include reimbursements.sync_requested in the event_types array:
+
+```bash
+curl -X POST "https://api.ramp.com/developer/v1/webhooks" \
+  -H "Authorization: Bearer $RAMP_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "endpoint_url": "https://your-domain.com/webhooks",
+    "event_types": ["reimbursements.sync_requested"]
+  }'
+```
+
+Ramp will send a POST request with a challenge to your endpoint during setup:
+
+1. Receive the `challenge` string from Ramp
+2. Respond by making a verification API call:
+
+```bash
+curl -X POST "https://api.ramp.com/developer/v1/webhooks/{webhook_id}/verify" \
+  -H "Authorization: Bearer $RAMP_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "challenge": "CHALLENGE_STRING_FROM_RAMP"
+  }'
+```
+
+### Step 2. Enable the Reimbursement Sync Button on your accounting connection
 
 Enable the setting that allows the reimbursement sync button for this connection. Once turned on, this shows the Sync button on the Accounting > Reimbursements page in Ramp.
 
 For new connections: Make a POST call to /developer/v1/accounting/connection with settings.reimbursement_sync_button_enabled set to true:
 
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/connection" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "is_active": true,
+    "remote_provider_name": "Your ERP Name",
+    "settings": {
+      "reimbursement_sync_button_enabled": true
+    }
+  }'
+```
+
 Then make a PATCH call to /developer/v1/accounting/connection/{connection_id}, using the id from the previous response as the connection_id, with settings.reimbursement_sync_button_enabled set to true:
+
+```bash
+curl -X PATCH "{environment-url}/developer/v1/accounting/connection/<connection_id>" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "settings": {
+      "reimbursement_sync_button_enabled": true
+    }
+  }'
+```
 
 Once enabled, the Sync button appears on the Accounting > Reimbursements page in Ramp.
 
 Since you've subscribed to the webhook, you will receive a reimbursements.sync_requested event when a customer clicks the Sync button:
 
+```json
+{
+  "business_id": "70244a39-d6f6-4111-94e1-952e8911961d",
+  "created_at": "2026-01-29T23:48:56.076424+00:00",
+  "id": "019c0c28-f33a-7cb6-a83f-070f6882184d",
+  "object": {
+    "count": 2,
+    "id": "019c0c28-f32e-742a-b8e3-07e1aa7e71ca",
+    "sync_request_id": "019c0c28-f32e-742a-b8e3-07e1aa7e71ca"
+  },
+  "type": "reimbursements.sync_requested"
+}
+```
+
+For the remaining steps, keep track of the `sync_request_id` value.
+
+<Warning>
+  Important: 5-minute response window
+</Warning>
+
 You must respond by posting the Accounting Sync within 5 minutes of receiving the webhook. Reimbursements that don't have a sync posted within that window will be automatically marked as failed.
+
+### Step 3. Fetch reimbursements, sync, and POST back to Ramp
 
 After receiving the reimbursements.sync_requested webhook, fetch the reimbursements that were requested for sync by calling the /developer/v1/reimbursements endpoint with the requested_to_sync filter. Only the reimbursements that were requested to sync will be returned.
 
+```bash
+curl -X GET "{environment-url}/developer/v1/reimbursements?requested_to_sync=True" \
+  -H "Authorization: Bearer <token>"
+```
+
 Once you've synced the reimbursement data to your system, make a POST call to /developer/v1/accounting/syncs. Include the sync_request_id from the webhook payload in the request body.
 
+```bash
+curl -X POST "{environment-url}/developer/v1/accounting/syncs" \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "your-unique-idempotency-key",
+    "sync_request_id": "<sync_request_id>",
+    "sync_type": "REIMBURSEMENT_SYNC",
+    "successful_syncs": [
+      {
+        "id": "<reimbursement_id>",
+        "reference_id": "your_external_id"
+      }
+    ]
+  }'
+```
+
 Ramp will update the UI in real time with the accurate number of reimbursements successfully synced or failed.
+
+### Customer journey
 
 Click the Sync All button in the top right of the screen, or select specific reimbursements to sync individually.

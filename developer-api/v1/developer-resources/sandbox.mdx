@@ -4,54 +4,53 @@ description: "The Ramp sandbox is a testing environment where developers and par
 ---
 
 
-## Key features
-
-- **Safe testing environment**: Test integrations and applications before deploying to production
-
-- **API development**: Access Ramp's Developer API for building custom integrations
-
-- **No real money movement**: Demo accounts cannot process actual financial transactions
-
 ## How to get sandbox access
 
-- **Developers/Partners**: Submit a request through the Ramp technology partnerships page to receive both sandbox and developer console access
+- **Developers/Partners:** Submit a request through the [Ramp technology partnerships](https://ramp.com/partners/technology) page to receive both sandbox and developer console access.
 
-- **Existing customers**: Request a sales sandbox through your Account Manager
+- **Existing customers:** Request a sales sandbox through your Account Manager.
 
-Ramp frontend
+## Sandbox environments
 
-https://demo.ramp.com
-
-Access the Ramp user interface for testing
-
-API
-
-https://demo-api.ramp.com
-
-Base URL for API calls in the Sandbox environment
+| Resource | URL | Description |
+| --- | --- | --- |
+| Ramp frontend | [https://demo.ramp.com](https://demo.ramp.com) | Access the Ramp user interface for testing |
+| API | [https://demo-api.ramp.com](https://demo-api.ramp.com) | Base URL for API calls in the Sandbox environment |
 
 ## Test demo actions
 
 While building with the dev API, we support simulation actions to support testing within the Ramp sandbox environment. You can simulate user events through the demo actions panel. You can open the demo actions panel directly within the Ramp sandbox with ⌘ J.
 
+### Mark bill as paid
+
 To mark a bill as paid, navigate to Bill Pay via the UX, then open the bill you want to mark as paid. Press ⌘ J to open the demo actions panel and select 'pay current bill'.
+
+<img src="/images/developer-resources/Sandbox-img1.png" alt="Sandbox" width="700" />
 
 <Note>
   This demo action depends on your Bill Pay payment release setting. When enabled, it only works for bills that are approved and scheduled. When disabled, it works for all bills.
 </Note>
 
-For more information, see Bill Pay payment release documentation.
+For more information, see the [Bill Pay guide](/developer-api/v1/guides/bill-pay).
+
+### Mark reimbursement as paid
 
 To mark a reimbursement as paid, navigate to the reimbursements tab and select "needs review" to find pending reimbursements. Open the reimbursement you want to mark as paid, then press ⌘ J to open the demo actions panel and select "Mark reimbursement as paid".
 
+<img src="/images/developer-resources/Sandbox-img2.png" alt="Sandbox" width="700" />
+
+### Create transaction
+
 To create a transaction, you can do this from any page within the sandbox environment. Press ⌘ J to open the demo actions panel and click on "add transactions".
+
+<img src="/images/developer-resources/Sandbox-img3.png" alt="Sandbox" width="700" />
+
+### Required permissions
 
 Each demo action requires specific permissions to work properly:
 
-Admin or Business Owner role, or the AP Clerk permission
-
-Mark reimbursement as approved
-
-The direct manager of the employee who submitted the reimbursement (or a manager in their reporting chain), Admin, or Bookkeeper role
-
-Employee role or higher (Manager, Admin, or Bookkeeper). The Employee role allows users to request spend, receive cards, make purchases, and submit reimbursements. View-only Admins and Guests cannot create transactions.
+| Action | Required Permissions |
+| --- | --- |
+| Mark bill as paid | Admin or Business Owner role, or the AP Clerk permission |
+| Mark reimbursement as approved | The direct manager of the employee who submitted the reimbursement (or a manager in their reporting chain), Admin, or Bookkeeper role |
+| Create transaction | Employee role or higher (Manager, Admin, or Bookkeeper). The Employee role allows users to request spend, receive cards, make purchases, and submit reimbursements. View-only Admins and Guests cannot create transactions. |

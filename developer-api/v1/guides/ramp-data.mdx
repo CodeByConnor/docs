@@ -3,74 +3,93 @@ title: "Ramp Data"
 description: "Ramp Data is subject to change as we expand the product area. Feedback and questions can be submitted via a Developer API support ticket."
 ---
 
+## What is Ramp Data?
+
 Ramp Data is Ramp's home for public datasets, benchmarks, and AI-oriented data products.
 
 Use Ramp Data to explore product-specific guides, query public REST APIs, and connect AI clients through Ramp Data MCP.
 
 More datasets, tools, and guides will be added here over time as Ramp Data expands.
 
+Interested in partnering with Ramp Data? Visit [Ramp Data partnerships](https://ramp.com/partners) to learn more.
+
+## Guides
+
+- [Ramp Rate](/developer-api/v1/guides/ramp-data/ramp-rate)
+- [AI Index](/developer-api/v1/guides/ramp-data/ai-index)
+
 ## Ramp Data MCP
 
 Use Ramp Data MCP when you want an AI agent to explore Ramp Data datasets conversationally.
 
-Server URL: https://mcp.ramp.com/ramp-data/mcp
+Server URL: `https://mcp.ramp.com/ramp-data/mcp`
 
 The Ramp Data MCP server includes tools across both Ramp Rate and AI Index, so one MCP connection can query both datasets.
 
-### Add the Ramp Data MCP server to your Claude Code session
+### Connect a client
 
-Run /mcp in your session to verify the connection.
+#### Claude Code
 
-- Cursor desktop app required
+Add the Ramp Data MCP server to your Claude Code session:
 
-The Cursor desktop app must be installed for this one-click link to work.
+```shell title="Add Ramp Data MCP to Claude Code"
+claude mcp add --transport http ramp-data https://mcp.ramp.com/ramp-data/mcp
+```
 
-### Or add manually to ~/.cursor/mcp.json
+Run `/mcp` in your session to verify the connection.
 
-### Add the following to your Claude Desktop config file
+#### Cursor
 
-- macOS: ~/Library/Application Support/Claude/claude_desktop_config.json
+<Note>
+  **Cursor desktop app required**  
+  The Cursor desktop app must be installed for this one-click link to work.
+</Note>
 
-- Windows: %APPDATA%\Claude\claude_desktop_config.json
+Add manually to `~/.cursor/mcp.json`:
 
-For any MCP-compatible client, use the server URL: https://mcp.ramp.com/ramp-data/mcp
+```json title="Cursor MCP configuration"
+{
+  "mcpServers": {
+    "ramp-data": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.ramp.com/ramp-data/mcp"]
+    }
+  }
+}
+```
 
-## Ramp Rate
+#### Claude Desktop
 
-- ramp_rate_list_categories
+Add the following to your Claude Desktop config file:
 
-List all software categories. Call this first to discover valid category names.
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
-- ramp_rate_get_category_summary
+```json title="Claude Desktop configuration"
+{
+  "mcpServers": {
+    "ramp-data": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://mcp.ramp.com/ramp-data/mcp"]
+    }
+  }
+}
+```
 
-Get adoption stats for a category, including adoption rate, YoY change, MoM change, growth rank, vendor count, and FTE segment breakdowns.
+#### Other MCP clients
 
-- ramp_rate_get_category_vendors
+For any MCP-compatible client, use the server URL: `https://mcp.ramp.com/ramp-data/mcp`
 
-Get a ranked vendor leaderboard within a category, with optional limit, fte_segment, and min_share_of_spend filters. competitor_switch_rate is a switcher win rate, not a retention or churn metric.
+## Available MCP tools
 
-- ramp_rate_resolve_vendor
-
-Resolve a human-readable vendor name like Slack to its canonical vendor_slug and list its categories.
-
-- ramp_rate_get_vendor_profile
-
-Get a vendor's full Ramp Rate profile across all categories.
-
-- ramp_rate_compare_vendors
-
-Compare adoption metrics side by side for 2-10 vendors.
-
-## AI Index
-
-- ai_index_get_adoption
-
-Get AI adoption history with vendor breakdown. Supports months from 1 to 120; 1 returns the latest available month, and responses may contain fewer months when less history is available.
-
-- ai_index_get_adoption_by_sector
-
-Get AI adoption history broken down by industry sector. Supports months from 1 to 120; 1 returns the latest available month, and responses may contain fewer months when less history is available.
-
-- ai_index_get_adoption_by_size
-
-Get AI adoption history broken down by company size. Supports months from 1 to 120; 1 returns the latest available month, and responses may contain fewer months when less history is available.
+| Dataset | Tool | Description |
+| --- | --- | --- |
+| Ramp Rate | `ramp_rate_list_categories` | List all software categories. Call this first to discover valid category names. |
+| Ramp Rate | `ramp_rate_get_category_summary` | Get adoption stats for a category, including adoption rate, YoY change, MoM change, growth rank, vendor count, and FTE segment breakdowns. |
+| Ramp Rate | `ramp_rate_get_category_vendors` | Get a ranked vendor leaderboard within a category, with optional `limit`, `fte_segment`, and `min_share_of_spend` filters. `competitor_switch_rate` is a switcher win rate, not a retention or churn metric. |
+| Ramp Rate | `ramp_rate_resolve_vendor` | Resolve a human-readable vendor name like Slack to its canonical `vendor_slug` and list its categories. |
+| Ramp Rate | `ramp_rate_get_vendor_profile` | Get a vendor's full Ramp Rate profile across all categories. |
+| Ramp Rate | `ramp_rate_compare_vendors` | Compare adoption metrics side by side for 2-10 vendors. |
+| AI Index | `ai_index_get_adoption` | Get AI adoption history with vendor breakdown. Supports `months` from 1 to 120; `1` returns the latest available month, and responses may contain fewer months when less history is available. |
+| AI Index | `ai_index_get_adoption_by_sector` | Get AI adoption history broken down by industry sector. Supports `months` from 1 to 120; `1` returns the latest available month, and responses may contain fewer months when less history is available. |
+| AI Index | `ai_index_get_adoption_by_size` | Get AI adoption history broken down by company size. Supports `months` from 1 to 120; `1` returns the latest available month, and responses may contain fewer months when less history is available. |

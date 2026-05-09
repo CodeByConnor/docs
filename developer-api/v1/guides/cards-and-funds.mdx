@@ -6,264 +6,333 @@ sidebarTitle: "Cards and Funds"
 
 Ramp's Developer API gives you programmatic control over funds, cards, and spending policies to help your teams spend responsibly and track budgets in real time. Whether you're managing departmental budgets, team events, or office expenses, these APIs provide the building blocks for automated spend management.
 
-### What you'll learn
+## How Ramp Funds, Cards, and Spend Programs Work Together
 
-- How to create funds with built-in controls using the Limits API
+<img src="/images/Guides/Card-and-funds-img.png" alt="Cards and funds" width="750" />
 
-- How to scale spending policies with reusable templates using the Spend Programs API
+### Funds (Managed via Limits API)
 
-- When to use virtual vs physical cards for different scenarios
-
-## How Ramp funds, cards, and spend programs work together
-
-Here's how these three concepts work together for effective spend management:
-
-Funds act as predefined budgets you assign to employees, teams, or initiatives:
+**Funds** act as predefined budgets you assign to employees, teams, or initiatives:
 
 - They can include merchant and category restrictions, as well as expiration controls
-
 - They can be shared across multiple users or assigned individually
-
 - Examples: "Marketing Q2 Budget", "Engineering Team Offsite", "Office Supplies - Austin"
 
-### Cards are the payment methods users spend funds with
+### Cards
 
-- Virtual cards are used for online transactions and subscriptions
+**Cards** are the payment methods users spend funds with:
 
-- Physical cards are shipped to users for in-person spending
-
+- **Virtual cards** are used for online transactions and subscriptions
+- **Physical cards** are shipped to users for in-person spending
 - Each card draws from its connected fund's available balance
-
 - Multiple cards can share the same fund, or one card can access multiple funds
 
-Card Data Access: Standard API responses return masked card numbers for security. Full 16-digit card numbers and CVVs require additional security review and PCI API access. Submit a Developer API support ticket if your platform needs to process payments directly using full card data.
+<Note>
+  **Card Data Access:** Standard API responses return masked card numbers for security. Full 16-digit card numbers and CVVs require additional security review and PCI API access. Submit a [Developer API support ticket](https://support.ramp.com) if your platform needs to process payments directly using full card data.
+</Note>
 
-Spend Programs group funds, users, and cards under shared policies. Think of them as "blueprints" that make fund creation faster and more consistent
+### Spend Programs
+
+**Spend Programs** group funds, users, and cards under shared policies. Think of them as "blueprints" that make fund creation faster and more consistent.
 
 - They can enforce consistent spending rules across multiple funds
-
 - They can enable automated fund provisioning based on employee attributes
-
 - Examples: "Team Budgets", "Team Offsites", "Professional Services Procurement"
 
-- Limits
+## Relevant Endpoints
 
-Create and manage funds. Funds are automatically linked to virtual cards.
+| Endpoints | Use | Relevant Scopes |
+| --- | --- | --- |
+| `Limits` | Create and manage funds. Funds are automatically linked to virtual cards. | `limits:read`, `limits:write` |
+| `Spend Programs` | Create reusable spending policy templates for consistent fund creation. | `spend_programs:read`, `spend_programs:write` |
+| `Cards` | Issue and manage physical cards. | `cards:read`, `cards:write` |
+| `Transactions` | View spending activity across cards and funds. | `transactions:read` |
 
-- limits:read, limits:write
-
-Create reusable spending policy templates for consistent fund creation.
-
-- spend_programs:read, spend_programs:write
-
-Issue and manage physical cards.
-
-- cards:read, cards:write
-
-- Transactions
-
-View spending activity across cards and funds.
-
-- transactions:read
-
-- Complete Walkthrough: Managing a Team Offsite
+## Complete Walkthrough: Managing a Team Offsite
 
 We'll walk you through managing a quarterly team offsite to show how spend programs, funds, and cards work together. This scenario covers the complete lifecycle from setup to monitoring.
 
+### Step 1: Create a Spend Program Template for "Team Offsites"
+
 First, create a reusable template for team offsites that can be used across multiple departments:
+
+```shell title="Create spend program for team offsites"
+curl --request POST \
+  --url https://demo-api.ramp.com/developer/v1/spend-programs \
+  --header 'Authorization: Bearer $RAMP_API_TOKEN' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "display_name": "Team Offsites",
+    "description": "Budget template for quarterly team offsites including meals, activities, and supplies",
+    "icon": "TeamSocialIcon",
+    "is_shareable": true,
+    "permitted_spend_types": {
+      "primary_card_enabled": true,
+      "reimbursements_enabled": true
+    },
+    "spending_restrictions": {
+      "limit": {
+        "amount": 1000000,
+        "currency_code": "USD"
+      },
+      "interval": "ANNUAL",
+      "allowed_categories": [19, 6, 4]
+    }
+  }'
+```
 
 This creates a template that allows spending on meals (category 19), lodging (category 6), and airlines (category 4).
 
+### Step 2: Create Funds for Your Specific Offsite
+
 Now create a fund for a Q1 Engineering Team Offsite using the template:
 
-Before running these commands: Replace the placeholder values ($SPEND_PROGRAM_ID, $USER_ID, etc.) with actual IDs from your Ramp account. The placeholders are formatted for bash compatibility - you can set them as environment variables or replace them directly in the commands.
+<Note>
+  **Before running these commands:** Replace the placeholder values (`$SPEND_PROGRAM_ID`, `$USER_ID`, etc.) with actual IDs from your Ramp account. The placeholders are formatted for bash compatibility - you can set them as environment variables or replace them directly in the commands.
+</Note>
 
-### When creating a fund from a spend program, you only need to provide
+```shell title="Create funds from spend program"
+curl --request POST \
+  --url https://demo-api.ramp.com/developer/v1/limits/deferred \
+  --header 'Authorization: Bearer $RAMP_API_TOKEN' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "display_name": "Engineering Q1 Offsite",
+    "spend_program_id": "$SPEND_PROGRAM_ID",
+    "idempotency_key": "$IDEMPOTENCY_KEY",
+    "user_id": "$USER_ID"
+  }'
 
-- display_name - Name for this specific fund
+# This returns a task_id. Check the status to get the spend_limit_id:
+curl --request GET \
+  --url https://demo-api.ramp.com/developer/v1/limits/deferred/status/$TASK_ID \
+  --header 'Authorization: Bearer $RAMP_API_TOKEN'
 
-- spend_program_id - ID of the spend program template to use
+# Response will include: {"status":"SUCCESS","data":{"spend_limit_id":"<spend_limit_id>"}}
+```
 
-- user_id - The initial user who will have access to the fund
+When creating a fund from a spend program, you only need to provide:
 
-- idempotency_key - Ensures the request isn't duplicated
+- `display_name` - Name for this specific fund
+- `spend_program_id` - ID of the spend program template to use
+- `user_id` - The initial user who will have access to the fund
+- `idempotency_key` - Ensures the request isn't duplicated
 
 The fund automatically inherits all spending restrictions and policies from the spend program template.
 
+### Step 3: Add Additional Users to the Fund
+
 If you need to add more team members to the offsite after initial creation, you can add users to the existing fund:
+
+```shell title="Add users to existing fund"
+curl --request PUT \
+  --url https://demo-api.ramp.com/developer/v1/limits/$LIMIT_ID/add-users \
+  --header 'Authorization: Bearer $RAMP_API_TOKEN' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "user_ids": [
+      "62701f3e-d2ac-4993-b7e9-c659771959b8f",
+      "7568fddf-e13f-4548-945c-232093c7c27f"
+    ]
+  }'
+```
 
 This adds the specified users to the fund, giving them access to spend from the shared offsite budget.
 
-### During the offsite, monitor spending across both your funds and cards
+### Step 4: Monitor Spending During the Offsite
 
-### After the offsite, review spending and close out the budget
+During the offsite, monitor spending across both your funds and cards:
+
+```shell title="Monitor offsite spending"
+# Check current fund balance and spending
+curl --request GET \
+  --url https://demo-api.ramp.com/developer/v1/limits/$LIMIT_ID \
+  --header 'Authorization: Bearer $RAMP_API_TOKEN'
+
+# Get recent transactions for this fund
+curl --request GET \
+  --url 'https://demo-api.ramp.com/developer/v1/transactions?limit_id=$LIMIT_ID' \
+  --header 'Authorization: Bearer $RAMP_API_TOKEN'
+
+# Get reimbursements for this fund
+curl --request GET \
+  --url 'https://demo-api.ramp.com/developer/v1/reimbursements?spend_limit_id=$LIMIT_ID' \
+  --header 'Authorization: Bearer $RAMP_API_TOKEN'
+```
+
+### Step 5: Review and Wrap Up
+
+After the offsite, review spending and close out the budget:
+
+```shell title="Close out offsite budget"
+# Get final spending report
+curl --request GET \
+  --url 'https://demo-api.ramp.com/developer/v1/transactions?limit_id=$LIMIT_ID' \
+  --header 'Authorization: Bearer $RAMP_API_TOKEN'
+
+# Suspend the funds to prevent additional spending
+curl --request POST \
+  --url https://demo-api.ramp.com/developer/v1/limits/$LIMIT_ID/suspension \
+  --header 'Authorization: Bearer $RAMP_API_TOKEN'
+```
 
 ## Best Practices
 
-- Create spend programs for recurring spending patterns (travel, SaaS, office supplies)
+### Spend Program Management
 
-- Use descriptive names and appropriate icons for easy identification
+-- Create spend programs for recurring spending patterns (travel, SaaS, office supplies)
+-- Use descriptive names and appropriate icons for easy identification
+-- Set up automatic provisioning rules for standardized employee benefits
+-- Enable requestable programs for ad-hoc spending needs
 
-- Set up automatic provisioning rules for standardized employee benefits
-
-- Enable requestable programs for ad-hoc spending needs
+### Fund Management
 
 - Use descriptive display names that indicate purpose
-
 - Set appropriate spending categories to prevent misuse
-
 - Enable reimbursements for general expense funds
-
 - Disable reimbursements for subscription-specific funds
-
 - Create separate funds for each subscription or vendor
-
 - Use category restrictions to ensure appropriate spending
-
 - Set reasonable spending limits based on expected usage
 
+### Virtual Cards
+
+- Create separate funds or limits by scenario when you need cleaner reconciliation
+- Share virtual card details only with approved buyers or systems
+- Rotate or terminate virtual cards at the end of short-lived projects
+
+### Physical Cards
+
 - Issue physical cards for employees who need in-person spending capability
-
 - Physical cards can draw from multiple funds through auto-matching
-
 - Consider shipping time when planning physical card rollouts
 
+### Security
+
 - Regularly review fund balances and spending
-
 - Suspend funds immediately when no longer needed
-
 - Use spending categories to limit where funds can be used
 
 ## Data Relationships
 
-- Spend Programs → Templates for creating multiple similar funds
+- Spend Programs -> Templates for creating multiple similar funds
+- Limits (Funds) -> Spending allocations that can have multiple users
+- Cards -> Payment methods that can spend from funds
+- Transactions -> Spending events that occur on cards against funds
 
-- Limits (Funds) → Spending allocations that can have multiple users
+## FAQ: Cards and Funds
 
-- Cards → Payment methods that can spend from funds
-
-- Transactions → Spending events that occur on cards against funds
-
-## FAQ
-
-## Need help
-
-Submit a Developer API support ticket and our team will follow up.
+### Should I create one spend program or separate programs for different event types?
 
 Create separate spend programs for different scenarios with distinct spending policies:
 
 - Team Offsites - meals, entertainment, team activities
-
 - Travel Expenses - flights, hotels, transportation
-
 - Conference Attendance - registration, meals, networking events
 
 This allows you to set appropriate category restrictions and spending limits for each scenario.
 
-### Yes! Team members can
+### Can team members use both the fund's virtual cards and their own physical cards?
+
+Yes! Team members can:
 
 - Use virtual card numbers from the shared fund for online purchases
-
 - Use their existing physical cards, which will auto-match to the fund if categories align
-
 - Get new physical cards issued specifically for the event (as shown in Step 3)
 
 The fund acts as the spending pool that multiple payment methods can draw from.
 
+### What happens if someone spends outside the allowed categories during the offsite?
+
 Transactions outside allowed categories (meals, entertainment, office supplies in our example) will be declined. You can:
 
 - Update the spend program or fund to allow additional categories
-
 - Have team members request reimbursements for valid expenses that don't fit categories
-
 - Issue separate cards with broader restrictions for specific team members
 
-### Use the monitoring approach from Step 4
+### How do I monitor spending in real-time during the offsite?
 
-- Check fund balances with GET /developer/v1/limits/$LIMIT_ID
+Use the monitoring approach from Step 4:
 
-- Filter transactions by fund with GET /developer/v1/transactions?spend_limit_id=$LIMIT_ID
-
+- Check fund balances with `GET /developer/v1/limits/$LIMIT_ID`
+- Filter transactions by fund with `GET /developer/v1/transactions?spend_limit_id=$LIMIT_ID`
 - Set up webhooks for real-time transaction notifications
-
 - Use date ranges to track spending during specific event periods
 
-### For team offsites, use one shared fund (is_shareable: true) because
+### Should team members get separate funds or share one fund for the offsite?
+
+For team offsites, use one shared fund (`is_shareable: true`) because:
 
 - Easier budget management and monitoring
-
 - Team members can coordinate spending without individual limits
-
 - Simplified reporting and reconciliation
-
 - Virtual card numbers can be shared for online group purchases
 
 Use separate funds when individuals need distinct budgets or spending restrictions.
 
+### Can limits exist without cards?
+
 Yes - You can create funds (limits) without any associated cards. These funds can be used for reimbursements only.
+
+### Can cards exist without limits?
 
 Yes - Physical cards can be created with their own spending restrictions independent of any limit. However, virtual cards are always created as part of a limit.
 
+### Do all cards have limits?
+
 No - Physical cards can have independent spending restrictions OR draw from limits. Virtual cards are always associated with limits.
+
+### Do all limits have cards?
 
 No - Limits can exist for reimbursement-only scenarios without any card numbers.
 
-### Suspending a Limit
+### What happens when I suspend a limit vs suspend a card?
+
+**Suspending a Limit:**
 
 - Does NOT automatically suspend associated cards
-
 - Prevents new spending from the limit
-
 - Cards linked to the limit will be declined when trying to spend from that limit
-
 - Cards can still spend from other non-suspended limits (if linked to multiple)
 
-### Suspending a Card
+**Suspending a Card:**
 
 - Prevents ALL spending on that specific card
-
 - Does NOT affect the associated limits
-
 - Other cards linked to the same limits can continue spending
 
-### Terminating a Limit
+### What's the difference between suspending and terminating?
+
+**Terminating a Limit:**
 
 - Permanently disables spending from that limit
-
 - Does NOT automatically terminate associated cards
-
 - Cards remain active but cannot spend from the terminated limit
 
-### Terminating a Card
+**Terminating a Card:**
 
 - Permanently disables the specific card
-
 - Does NOT affect associated limits
-
 - Other cards can continue spending from the same limits
 
-### Use spend programs when
+### What's the difference between using spend programs vs creating funds directly?
+
+**Use spend programs when:**
 
 - You run similar events regularly (quarterly offsites, monthly team dinners)
-
 - You want consistent spending policies across departments
-
 - You need templates for employee self-service requests
 
-### Create funds directly when
+**Create funds directly when:**
 
 - This is a one-off event with unique requirements
-
 - You need custom spending restrictions not covered by existing programs
-
 - You're testing new spending policies before creating a template
 
-- Getting Started - API authentication and setup
+## Next Steps
 
-- Virtual Cards - For access to full card data including 16 digit card numbers and CVVs
-
-- Webhooks - Get notified of spending events
-
-- Limits API - Complete API reference
-
-- Spend Programs API - Complete API reference
+- [Getting Started](/developer-api/v1/getting-started/getting-started) - API authentication and setup
+- [Virtual Cards](/developer-api/v1/guides/virtual-cards) - For access to full card data including 16 digit card numbers and CVVs
+- [Webhooks](/developer-api/v1/developer-resources/webhooks) - Get notified of spending events
+- `Limits API` - Complete API reference
+- `Spend Programs API` - Complete API reference

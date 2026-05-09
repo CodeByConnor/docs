@@ -4,7 +4,11 @@ description: "AI Index is subject to change. Feedback and questions can be submi
 sidebarTitle: "AI Index"
 ---
 
-AI Index measures the adoption rate of artificial intelligence products and services among American businesses. Our sample includes more than 50,000 American businesses and billions of dollars in corporate spend using data from Ramp’s corporate card and bill pay platform.
+## What is AI Index?
+
+AI Index measures the adoption rate of artificial intelligence products and services among American businesses. Our sample includes more than 50,000 American businesses and billions of dollars in corporate spend using data from Ramp's corporate card and bill pay platform.
+
+## Methodology
 
 Our work builds on previous work by Bonney et al. (2024) by using Ramp transaction data to measure business adoption of AI products and services. Firms are considered to have adopted AI tools if they have a positive transaction amount for an AI product or service in a given month.
 
@@ -12,9 +16,15 @@ Because AI Index is based on observed paid transactions, it likely undercounts t
 
 ## Metric definitions
 
+### AI adoption share
+
 AI adoption share measures the percentage of businesses in the relevant cohort that had a positive transaction amount for an AI product or service in a given month.
 
+### Industry sector
+
 Industry sector is the NAICS-based grouping used to compare AI adoption across different parts of the economy. Sectors are assigned using internal company models.
+
+### Company size segment
 
 Company size segment is the size bucket used to compare AI adoption across businesses of different scales. Size segments are assigned using internal company models together with internal and third-party revenue and employee-count data.
 
@@ -22,38 +32,46 @@ Company size segment is the size bucket used to compare AI adoption across busin
 
 Use the public AI Index API to inspect overall AI adoption, vendor concentration, industry sector trends, and company size patterns over time.
 
-Base URL: https://api.ramp.com/v1/public/ai-index
+Base URL: `https://api.ramp.com/v1/public/ai-index`
 
-GET /adoption
+| Endpoint | Description |
+| --- | --- |
+| `GET /adoption` | Get overall AI adoption metrics and vendor breakdowns as monthly records. |
+| `GET /adoption/sectors` | Get AI adoption rates by industry sector as monthly records. |
+| `GET /adoption/sizes` | Get AI adoption rates by company size segment as monthly records. |
 
-Get overall AI adoption metrics and vendor breakdowns as monthly records.
+### Query parameter
 
-GET /adoption/sectors
+All three AI Index endpoints support an optional `months` query parameter:
 
-Get AI adoption rates by industry sector as monthly records.
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `months` | integer | `1` | Number of months of history to return. `1` returns the latest available month. You can request up to 120 months, and the response may contain fewer months if less history is available. |
 
-GET /adoption/sizes
+### Response notes
 
-Get AI adoption rates by company size segment as monthly records.
+- All AI Index endpoints return a `{"data": [...]}` wrapper containing zero or more monthly records.
+- `GET /adoption` returns monthly records with a `month`, an overall `ai_adoption_share`, and a vendor breakdown.
+- `GET /adoption/sectors` returns monthly records with a `month` and a `sectors` array.
+- `GET /adoption/sizes` returns monthly records with a `month` and a `sizes` array.
+- If no data is available for the request, the API returns `{"data": []}` with HTTP 200.
 
-All three AI Index endpoints support an optional months query parameter:
+### Quick start
 
-- months
+```shell title="AI Index quick start"
+# 1. Get latest month AI adoption + vendor breakdown
+curl -s https://api.ramp.com/v1/public/ai-index/adoption | jq
 
-- integer
+# 2. Get last 12 months of adoption data
+curl -s "https://api.ramp.com/v1/public/ai-index/adoption?months=12" | jq
 
-1
+# 3. See adoption by industry sector
+curl -s https://api.ramp.com/v1/public/ai-index/adoption/sectors | jq '.data[0].sectors[] | "\(.sector): \(.ai_adoption_share)"'
 
-Number of months of history to return. 1 returns the latest available month. You can request up to 120 months, and the response may contain fewer months if less history is available.
+# 4. See adoption by company size (last 6 months)
+curl -s "https://api.ramp.com/v1/public/ai-index/adoption/sizes?months=6" | jq
+```
 
-All AI Index endpoints return a `{"data": [...]}` wrapper containing zero or more monthly records.
+## MCP
 
-GET /adoption returns monthly records with a month, an overall ai_adoption_share, and a vendor breakdown.
-
-GET /adoption/sectors returns monthly records with a month and a sectors array.
-
-GET /adoption/sizes returns monthly records with a month and a sizes array.
-
-If no data is available for the request, the API returns `{"data": []}` with HTTP 200.
-
-To access AI Index through MCP, see the Ramp Data MCP guide.
+To access AI Index through MCP, see the [Ramp Data MCP guide](/developer-api/v1/guides/ramp-data).

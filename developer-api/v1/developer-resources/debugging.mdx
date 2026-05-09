@@ -3,39 +3,48 @@ title: "Debugging"
 description: "Ramp APIs will return an x-trace-id header in all API responses. The x-trace-id is particularly helpful for debugging, as it enables correlation between logs, metrics, and the API response, providing greater visibility into how the request was processed."
 ---
 
+## Usage
 
-Include the x-trace-id when reaching out to Ramp support for quicker issue resolution.
+- Include the `x-trace-id` when reaching out to Ramp support for quicker issue resolution.
+- Use the `x-trace-id` to track specific requests across different systems and identify potential bottlenecks or failures.
+- Make sure to log the `x-trace-id` in your application for easy reference in case you need to troubleshoot any API interactions.
 
-Use the x-trace-id to track specific requests across different systems and identify potential bottlenecks or failures.
-
-Make sure to log the x-trace-id in your application for easy reference in case you need to troubleshoot any API interactions.
+## Example
 
 Every API response includes the trace ID in the headers:
 
+```shell
+curl -I https://api.ramp.com/developer/v1/business \
+  -H "Authorization: Bearer $RAMP_API_TOKEN"
+
+# Response headers include:
+# x-trace-id: 1234567890abcdef1234567890abcdef
+```
+
 When contacting support, always include this trace ID for faster resolution.
 
-## How to submit a Developer API support ticket
+## How to Submit a Developer API Support Ticket
 
-Open Developer Support and click Connect to Developer Support team to start a ticket directly. You can also follow the in-product steps below.
+Open Developer Support and click **Connect to Developer Support team** to start a ticket directly. You can also follow the in-product steps below.
 
-### 1. Navigate to Company > Developer
+### Steps
 
-In the left-hand navigation, click Company to expand the menu, then select Developer. (You can skip this step if you're accessing directly from the developer console.)
+1. **Navigate to Company > Developer**  
+   In the left-hand navigation, click **Company** to expand the menu, then select **Developer**. (You can skip this step if you're accessing directly from the developer console.)
+<img src="/images/developer-resources/Debugging-img1.png" alt="Debugging" width="350" />
+2. **Open Developer API Support**  
+   On the Developer page, click the **Developer API Support** card.
+<img src="/images/developer-resources/Debugging-img2.png" alt="Debugging" width="350" />
+3. **Select "Connect to Developer Support team"**  
+   In the chat window, select **Connect to Developer Support team**.
+<img src="/images/developer-resources/Debugging-img3.png" alt="Debugging" width="350" />
+4. **Answer the agent's questions**  
+   The AI assistant will ask you a few questions about your issue. Answer as completely as you can, then review the pre-filled support ticket form to confirm the details look accurate.
+<img src="/images/developer-resources/Debugging-img4.png" alt="Debugging" width="350" />
+5. **Click "Submit Ticket"**  
+   Click **Submit Ticket** to send your request to the team.
+<img src="/images/developer-resources/Debugging-img5.png" alt="Debugging" width="350" />
 
-### 2. Open Developer API Support
-
-On the Developer page, click the Developer API Support card.
-
-### 3. Select "Connect to Developer Support team"
-
-In the chat window, select Connect to Developer Support team.
-
-### 4. Answer the agent's questions
-
-The AI assistant will ask you a few questions about your issue. Answer as completely as you can, then review the pre-filled support ticket form to confirm the details look accurate.
-
-### 5. Click "Submit Ticket"
-
-Click Submit Ticket to send your request to the team.
+### What happens next
 
 Our Developer Support team will follow up with you over email.
